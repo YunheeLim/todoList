@@ -5,9 +5,9 @@ const secret =require('./secret');
 // MySQL 연결 설정
 const db = mysql.createConnection({
     host: '127.0.0.1',
-    user: secret.DB_USER,
-    password: secret.DB_PASSWORD,
-    database: secret.DB_DATABASE,
+    user: secret.db.DB_USER,
+    password: secret.db.DB_PASSWORD,
+    database: secret.db.DB_DATABASE,
     port:'3306'
 });
   

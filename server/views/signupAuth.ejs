@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>회원가입 이메일 인증 페이지</title>
+</head>
+<body>
+  <h1>회원가입 이메일 인증</h1>
+  <form action="/signupAuth" method="POST">
+    <label for="authcode">인증코드</label>
+    <input type="text" id="authcode" name="authCode" required><br><br>
+    <input type="submit" value="제출">
+  </form>
+  <% if(typeof msg !='undefined'){ %>
+    <p><%=msg%></p>
+  <% } %>
+</body>
+</html>

@@ -11,7 +11,7 @@ sess.sessionExist = (req, res, next) => {
     next();
   } else {
     // 세션 정보가 없는 경우, 로그인 페이지로 리다이렉트 또는 에러 처리 등을 수행할 수 있습니다.
-    res.redirect('/index'); // 예시로 로그인 페이지로 리다이렉트하도록 설정했습니다.
+    res.redirect('/index'); // 예시로 첫 페이지로 리다이렉트하도록 설정했습니다.
   }
 };
 
@@ -19,7 +19,7 @@ sess.sessionExist = (req, res, next) => {
 sess.sessionNotExist=(req,res,next)=>{
     //세션 존재하는 경우
     if(req.session&&req.session.userId){
-        res.render('authFail',{error:'이미 로그인했습니다. 접근할 수 없습니다.'});
+        res.render('accessFail',{msg:'이미 로그인했습니다. 접근할 수 없습니다.'});
     }else{ //세션 없는 경우
         next();
     }
