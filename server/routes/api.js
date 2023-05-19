@@ -35,25 +35,18 @@ router.post('/signup', (req, res) => {
 router.post('/login', (req, res) => {
   const id = req.body.id;
   const pw = req.body.password;
-
-  db.query('SELECT * FROM User WHERE id=?', [id], (err, result) => { // 1. ID가 존재하는지 검색
-    if (err) {  throw err;  }
-    if (result.length != 0) { // ID 존재하는 경우
-      db.query('SELECT password FROM User WHERE id=?', [id], (err, result) => { // 2. 입력받은 pw와 DB의 pw 비교
-        if (err) { throw err; }
-        if (result === pw) { // pw 일치하면 로그인 성공
-          console.log('user: ', id + ' - login success');
-          req.session.isLogined = true;
-          req.session.userId = req.body.id;
-          res.json({ result: 'success', msg: "로그인에 성공했습니다." });
-        } else { // ID는 존재하지만 pw 틀림
-          console.log('user: ', id + ' - login fail: wrong password');
-          res.json({ result: 'fail', msg: "비밀번호가 일치하지 않습니다." });
-        }
-      })
-    } else { // ID 존재하지 않는 경우
-      console.log('user: ', id + ' - login fail: No such ID');
-      res.json({ result: 'fail', msg: "존재하지 않는 아이디 입니다." });
+  db.query('SELECT * FROM User WHERE id=? AND password=?', [id, pw], (err, result) => {
+    if (err) {
+      throw err;
+    }
+    if (result.length != 0) { // 결과 존재하는 경우
+      console.log('user: ', id + ' - login success');
+      req.session.isLogined = true;
+      req.session.userId = req.body.id;
+      res.json({ result: 'success', msg: "로그인에 성공했습니다." });
+    } else { // 존재하지 않는 경우
+      console.log('user: ', id + ' - login fail: No such ID or PW');
+      res.json({ result: 'fail', msg: "아이디 또는 비밀번호가 일치하지 않습니다." });
     }
   })
 })
@@ -61,6 +54,7 @@ router.post('/login', (req, res) => {
 // 로그아웃 요청 처리
 router.get('/logout',(req,res)=>{
   req.session.destroy()
+  res.json({result:'success'});
 })
 
 module.exports = router;
