@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-const secret = require('../config/secret');
+const secret = require('../config/secretNew');
 
 //smtp 설정 --> ../config/secret.js에 가서 gmail user, password 값 넣어줘야합니다!!
 const smtpTransport = nodemailer.createTransport({
