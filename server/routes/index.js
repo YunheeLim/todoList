@@ -8,7 +8,7 @@ const sess = require('../controller/sessionChecker.js');
 const emailAuth = require('../controller/emailAuth.js');
 const { raw } = require('body-parser');
 
-
+// req.session.userId에 값이 있냐 없냐로 사용자가 로그인 되어있는지 안되어있는지 구분
 
 // index 페이지 
 router.get('/', sess.sessionExist, function (req, res, next) {
@@ -34,13 +34,23 @@ router.post('/signup', (req, res) => {
     console.log('user: ', req.body.id + ' - sign up fail: invalid input data');
     res.render('signup', { error: '유효하지 않은 입력입니다.' });
   }
-  db.query('SELECT * FROM User WHERE id=?', [id], (err, data) => {
-    if (data.length == 0) { // DB에 해당 id에 대한 정보가 없을 경우
-      // 이메일 인증 절차
-      req.session.usrEmail = user.email;
-      req.session.user = user; // post(/signupAuth)에서 db에 정보 넣기 위해 세션에 user 정보 저장...
-      emailAuth.emailAuthentication(req, res);
-      res.redirect('/signupAuth');
+  db.query('SELECT * FROM User WHERE id=?', [id], (err, idData) => {
+    if (err) { throw err; }
+    if (idData.length == 0) { // DB에 해당 id에 대한 정보가 없을 경우
+      db.query('SELECT * FROM User WHERE email=?', [email], (err, mailData) => { // DB에 해당 email 정보있는지 검색
+        if (err) { throw err; }
+        if (mailData.length == 0) { //DB에 해당 email에 대한 정보 없는 경우 -> 가입 진행
+          // 이메일 인증 절차
+          req.session.usrEmail = user.email;
+          req.session.user = user; // post(/signupAuth)에서 db에 정보 넣기 위해 세션에 user 정보 저장...
+          //emailAuth.emailAuthentication(req, res);
+          res.redirect('/signupAuth');
+        } else { // 이미 사용 중인 email인 경우
+          console.log('user: ', id + ' - sign up fail: email already exist');
+          res.render('signup', { error: '이미 사용중인 이메일 입니다.', id: user.id, name: user.name, email: user.email });
+        }
+
+      })
     } else { // DB에 중복된 id가 있을 경우
       console.log('user: ', req.body.id + ' - sign up fail: ID already exist');
       res.render('signup', { error: '이미 사용중인 ID 입니다.', id: user.id, name: user.name, email: user.email });
@@ -50,11 +60,10 @@ router.post('/signup', (req, res) => {
 
 // 인증메일 발송 & 이메일인증 페이지 렌더링
 router.get('/signupAuth', sess.sessionNotExist, (req, res) => {
-  if (req.session.usrEmail) { // 세션에 이메일이 있는 경우
-    // emailAuth.emailAuthentication(req, res); // 근데 이렇게 하면 안된다 인증메일 하나 받아놓고 또 다시 /signupAuth로 접속하면 자동으로 메일이 또 발송되고 세션의 authCode도 값이 바뀐다
+  if (req.session.usrEmail) { // 세션에 이메일이 있는 경우 (정상적인 접근)
     let msg = req.session.usrEmail + " 주소로 인증코드가 전송되었습니다. 인증코드를 제출해 이메일 인증을 완료해주세요."
     res.render('signupAuth', { msg: msg });
-  } else { // 세션에 이메일 없이 비정상적 접근인 경우
+  } else { // 세션에 이메일 없는 경우 (비정상적 접근)
     res.render('accessFail', { msg: '비정상적 접근입니다.' })
   }
 })
@@ -79,7 +88,7 @@ router.post('/signupAuth', (req, res) => {
 })
 
 // 회원가입완료 페이지 렌더링
-router.get('/signupResult', (req, res) => {
+router.get('/signupResult', sess.sessionNotExist,(req, res) => {
   res.render('signupResult');
 })
 
