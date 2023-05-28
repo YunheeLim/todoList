@@ -47,6 +47,7 @@ emailAuth.emailAuthentication = async (req, res) => {
     req.session.authCode=code;
     await sendAuthCode(email, code, res);
     console.log('email send to '+email+',  req.session.authCode: '+req.session.authCode)
+    res.json({result:'success',msg:'이메일이 전송되었습니다.'})
 }
 
 
