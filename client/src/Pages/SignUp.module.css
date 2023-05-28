@@ -49,7 +49,9 @@ html, body {
     justify-content: center;
 }
 
-.usrId{
+input:focus {outline:none;}
+
+.id{
     height:50px;
     width: 900px;
     font-size: 1rem;
@@ -58,10 +60,22 @@ html, body {
     border-right-width:0;
     border-top-width:0;
     border-bottom-width:1;
-    border-color:#D8D8D8
+    border-color:#D8D8D8;
 }
 
-.usrId::placeholder{
+.id_active{
+    height:50px;
+    width: 900px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-left-width:0;
+    border-right-width:0;
+    border-top-width:0;
+    border-bottom-width:1;
+    border-color: red;
+}
+
+.id::placeholder{
     color:#BDBDBD;
 }
 
@@ -74,7 +88,19 @@ html, body {
     border-right-width:0;
     border-top-width:0;
     border-bottom-width:1;
-    border-color:#D8D8D8
+    border-color:#D8D8D8;
+}
+
+.nickName_active{
+    height:50px;
+    width: 900px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-left-width:0;
+    border-right-width:0;
+    border-top-width:0;
+    border-bottom-width:1;
+    border-color: red;
 }
 
 .nickName::placeholder{
@@ -94,6 +120,18 @@ html, body {
     border-color:#D8D8D8
 }
 
+.email_active{
+    height:50px;
+    width: 900px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-left-width:0;
+    border-right-width:0;
+    border-top-width:0;
+    border-bottom-width:1;
+    border-color: red;
+}
+
 .email::placeholder{
     color:#BDBDBD;
 }
@@ -107,7 +145,19 @@ html, body {
     border-right-width:0;
     border-top-width:0;
     border-bottom-width:1;
-    border-color:#D8D8D8
+    border-color:#D8D8D8;
+}
+
+.password_active{
+    height:50px;
+    width: 900px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-left-width:0;
+    border-right-width:0;
+    border-top-width:0;
+    border-bottom-width:1;
+    border-color:red;
 }
 
 .password::placeholder{
@@ -126,6 +176,18 @@ html, body {
     border-color:#D8D8D8
 }
 
+.password_test_active{
+    height:50px;
+    width: 900px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-left-width:0;
+    border-right-width:0;
+    border-top-width:0;
+    border-bottom-width:1;
+    border-color: red;
+}
+
 .password_test::placeholder{
     color:#BDBDBD;
 }
@@ -142,6 +204,18 @@ html, body {
     height:50px;
     width: 900px;
     color: #BDBDBD;
+    font-size: 1rem;
+    font-weight: bold;
+    background-color: #F2F2F2;
+    border: none;
+    cursor:pointer;
+}
+
+.submit_active{
+    margin-top:30px;
+    height:50px;
+    width: 900px;
+    color: black;
     font-size: 1rem;
     font-weight: bold;
     background-color: #F2F2F2;

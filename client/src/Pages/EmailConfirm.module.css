@@ -41,7 +41,7 @@ html, body {
     margin-left:46%;
 }
 
-.login{
+.confirm{
     margin:50px;
     display: flex;
     flex-direction: column;
@@ -49,9 +49,15 @@ html, body {
     justify-content: center;
 }
 
+.confirm_text{
+    margin-top: 2%;
+    font-size: 0.9rem;
+    color: #848484;
+}
+
 input:focus {outline:none;}
 
-.id{
+.number{
     height:50px;
     width: 900px;
     font-size: 1rem;
@@ -63,7 +69,7 @@ input:focus {outline:none;}
     border-color:#D8D8D8
 }
 
-.id_active{
+.number_active{
     height:50px;
     width: 900px;
     font-size: 1rem;
@@ -75,7 +81,7 @@ input:focus {outline:none;}
     border-color: red;
 }
 
-.id::placeholder{
+.number::placeholder{
     color:#BDBDBD;
 }
 
