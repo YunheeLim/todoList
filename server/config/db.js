@@ -1,5 +1,5 @@
 const mysql = require('mysql');
-const secret =require('./secret');
+const secret =require('./secretNew');
 
 
 // MySQL 연결 설정
