@@ -1,0 +1,73 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+.header{
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    padding: 10px 0px 10px 0;
+}
+
+.year{
+    margin-right: 5px;
+}
+
+.move_month{
+    width: 12%;
+    margin-right: 2.5%;
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+.days_container{
+    display: flex;
+    justify-content: center;
+    margin-right: 5%;
+}
+
+.days{
+    width: 95%;
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 10px;
+}
+
+.col{
+    font-size: 0.8rem;
+}
+
+.row{
+    width: 95%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    padding-bottom: 5px;
+}
+
+.date{
+    width:30px;
+    display: flex;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.date_not_present{
+    width:30px;
+    display: flex;
+    justify-content: center;
+    color: white;
+}
+
+
+.date_selected{
+    width:30px;
+    display: flex;
+    justify-content: center;
+    color: red;
+    cursor: pointer;
+}
