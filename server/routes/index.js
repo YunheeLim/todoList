@@ -5,7 +5,7 @@ const session = require('express-session');
 const auth = require('../controller/auth.js');
 const db = require('../config/db.js');
 const sess = require('../controller/sessionChecker.js');
-const emailAuth = require('../controller/emailAuth.js');
+const signupController=require('../controller/signUp.js');
 const { raw } = require('body-parser');
 
 // req.session.userId에 값이 있냐 없냐로 사용자가 로그인 되어있는지 안되어있는지 구분
@@ -31,25 +31,16 @@ router.post('/signup', async (req, res) => {
   const user = { id: id, name: name, email: email, password: password };
   console.log(user)
   if (!auth.isValidInput(user)) { // 서버에서 입력 폼의 데이터 검사
-    console.log('user: ', req.body.id + ' - sign up fail: invalid input data');
+    console.log('user: ', user.id + ' - sign up fail: invalid input data');
     res.render('signup', { error: '유효하지 않은 입력입니다.' });
   }
-
-  let idQuery = await db.Query('SELECT * FROM User WHERE id=?', [id]); // DB에 해당 id 정보있는지 검색
-  if (idQuery.length==0){ //DB에 해당 id에 대한 정보 없는 경우 -> email 정보 있는지 검색
-    let emailQuery=await db.Query('SELECT * FROM User WHERE email=?', [email]);
-    if(emailQuery.length==0){ //DB에 해당 email에 대한 정보 없는 경우 -> 회원가입 처리
-      // 이메일 인증 절차
-      req.session.user = user; // post(/signupAuth)에서 db에 정보 넣기 위해 세션에 user 정보 저장...
-      emailAuth.emailAuthentication(req, res,'index');
-      res.redirect('/signupAuth');
-    } else{ //이미 사용중인 email인 경우 -> 가입 불가
-      console.log('user: ', email + ' - sign up fail: email already exist');
-      res.render('signup', { error: '이미 사용중인 이메일 입니다.', id: user.id, name: user.name, email: user.email });
-    }
-  } else { //DB에 해당 id에 대한 정보 있는 경우 -> 가입 불가
-    console.log('user: ', id + ' - sign up fail: ID already exist');
-    res.render('signup', { error: '이미 사용중인 ID 입니다.', id: user.id, name: user.name, email: user.email });
+  let signupResult=await signupController.signup(user);
+  console.log("signupResult:",signupResult);
+  if(signupResult.result){
+    let msg = email + " 주소로 인증코드가 전송되었습니다. 인증코드를 제출해 이메일 인증을 완료해주세요."
+    res.render('signupAuth',{msg:msg});
+  } else{
+    res.render('signup',{error:signupResult.msg, id: user.id, name: user.name, email: user.email })
   }
 });
 

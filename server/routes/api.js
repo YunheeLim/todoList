@@ -5,6 +5,7 @@ const auth = require('../controller/auth.js');
 const db = require('../config/db.js');
 const sess = require('../controller/sessionChecker.js');
 const emailAuth=require('../controller/emailAuth.js');
+const signupController=require('../controller/signUp.js');
 
 
 // 회원 가입 요청 처리
@@ -15,23 +16,15 @@ router.post('/signup', async (req, res) => {
   console.log(user)
   if (!auth.isValidInput(user)) { // 서버에서 입력 폼의 데이터 검사
     console.log('user: ', req.body.id + ' - sign up fail: invalid input data');
-    res.json({ result: 'fail', msg: "유효하지 않은 입력입니다." });
+    res.json({ result: false, msg: "유효하지 않은 입력입니다." });
   }
 
-  let idQuery = await db.Query('SELECT * FROM User WHERE id=?', [id]); // DB에 해당 id 정보있는지 검색
-  if (idQuery.length==0){ //DB에 해당 id에 대한 정보 없는 경우 -> email 정보 있는지 검색
-    let emailQuery=await db.Query('SELECT * FROM User WHERE email=?', [email]);
-    if(emailQuery.length==0){ //DB에 해당 email에 대한 정보 없는 경우 -> 회원가입 처리
-      // 이메일 인증 절차
-      req.session.user = user; // post(/signupAuth)에서 db에 정보 넣기 위해 세션에 user 정보 저장...
-      emailAuth.emailAuthentication(req, res,'api');
-    } else{ //이미 사용중인 email인 경우 -> 가입 불가
-      console.log('user: ', req.body.email + ' - sign up fail: email already exist');
-      res.json({result:'fail',msg:"이미 사용중인 이메일 입니다."});
-    }
-  } else { //DB에 해당 id에 대한 정보 있는 경우 -> 가입 불가
-    console.log('user: ', req.body.id + ' - sign up fail: ID already exist');
-    res.json({ result: 'fail', msg: "이미 사용중인 ID 입니다." });
+  let signupResult=await signupController.signup(user);
+  console.log("signupResult:",signupResult);
+  if(signupResult.result){ // 메일 전송 성공
+    res.json({result:true, msg:signupResult.msg, email:email});
+  } else{ // 메일 전송 실패 또는 id,email 중복
+    res.json({result:false, msg:signupResult.msg});
   }
 });
 

@@ -7,7 +7,7 @@ const db = mysql.createPool({
     host: '127.0.0.1',
     user: secret.db.DB_USER,
     password: secret.db.DB_PASSWORD,
-    database: 'ToDoWeb',
+    database: secret.db.DB_DATABASE,
     waitForConnections: true,
     connectionLimit: 10,
     maxIdle: 10,
@@ -18,7 +18,12 @@ const db = mysql.createPool({
     port:'3306'
 });
 
-
+/**
+ * db pool 연결해서 쿼리 실행 후 pool return, 쿼리 결과값을 리턴
+ * @param {*} sql query sentence
+ * @param {*} param query param
+ * @returns 
+ */
 module.exports.Query = async (sql, param) =>{
 
   let conn = await db.getConnection();
