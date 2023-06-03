@@ -2,7 +2,7 @@
 	`user_num`	INT(6)	NOT NULL	AUTO_INCREMENT	PRIMARY KEY ,
 	`user_id`	VARCHAR(20)	NOT NULL,
 	`password`	VARCHAR(255)	NOT NULL,
-	`nickname`	VARCHAR(30)	NOT NULL	DEFAULT 'user',
+	`user_name`	VARCHAR(30)	NOT NULL,
 	`email`	VARCHAR(100)	NOT NULL,
 	`img`	VARCHAR(255)	NULL,
 	`profile_msg`	VARCHAR(255)	NULL,
