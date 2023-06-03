@@ -1,7 +1,8 @@
 # mysql 연결을 위한 계정 정보 secret.js 파일
-./server/config/secret.js
 server/config/secretNew.js
 ./server/config/authKey.js
+
+.DS_Store
 
 # Logs
 logs
