@@ -22,10 +22,12 @@ const sendAuthCode = (email, code, res) => {
         인증번호 6자리 👉 ${code}`, // 이메일 내용
     };
 
-    smtpTransport.sendMail(mailOptions, (error, res) => {
+    smtpTransport.sendMail(mailOptions, (error, result) => {
         if (error) {
+            console.log(error.message)
             res.status(500).json({
                 message: `Failed to send authentication email to ${email}`,
+                err:error.message
             });
         } else {
             res.status(200).json({
@@ -41,13 +43,19 @@ const sendAuthCode = (email, code, res) => {
 
 const emailAuth = {}
 
-emailAuth.emailAuthentication = async (req, res) => {
+emailAuth.emailAuthentication = async (req, res,str) => {
     const code = Math.floor(Math.random() * 888888) + 111111;
-    const email = req.session.usrEmail;
+    const email = req.session.user.email;
     req.session.authCode=code;
+
     await sendAuthCode(email, code, res);
+
     console.log('email send to '+email+',  req.session.authCode: '+req.session.authCode)
-    res.json({result:'success',msg:'이메일이 전송되었습니다.'})
+    if(str=='index'){
+        return true;
+    }else{
+        res.json({result:'success',msg:'인증코드가 전송되었습니다.'})
+    }
 }
 
 
