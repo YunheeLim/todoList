@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useState } from 'react';
 import styles from "./SignUp.module.css";
 import { Link } from "react-router-dom";
@@ -248,7 +248,11 @@ export default function SignUp() {
 
                 console.log(response.data); // 서버의 응답 출력
                 // !!회원가입 성공 시 다음 페이지 어디로 갈지 작성 필요!!
-                window.location = "/login";
+                if (response.data.result === 'success'){
+                    window.location = "/signupAuth";
+                }else if(response.data.result === 'fail'){
+                    window.alert("이미 사용중인 ID 입니다.");
+                }
             } catch (error) {
                 console.error(error);
             }
@@ -256,8 +260,8 @@ export default function SignUp() {
     }
 
     return (
-        <body>
-            <div className={styles.container}>
+        <div className={styles.container1}>
+            <div className={styles.container2}>
                 <div className={styles.navigation}>
                     <Link to="/first">
                         <button className={styles.back}>&#60;</button>
@@ -278,6 +282,6 @@ export default function SignUp() {
                     <input type="submit" className={button ? styles.submit_active : styles.submit} value="확인" />
                 </form>
             </div>
-        </body>
+        </div>
     );
 }

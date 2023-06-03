@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import styles from "./EmailConfirm.module.css";
+import styles from "./SignUpAuth.module.css";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
-export default function EmailConfirm() {
+export default function SignUpAuth() {
     const [number, setNumber] = useState(0);
     const [focusing, setFocusing] = useState(false);
     const [error, setError] = useState('');
@@ -46,12 +46,12 @@ export default function EmailConfirm() {
             // 인증번호 변수 전달
             const _number = number;
             try {
-                const response = await axios.post('/api/', { // 서버로 이메일 인증 요청 전송
+                const response = await axios.post('/api/signupAuth', { // 서버로 이메일 인증 요청 전송
                     number: _number
                 });
 
                 console.log(response.data); // 서버의 응답 출력
-                window.location = "/login";
+                
             } catch (error) {
                 console.error(error);
             }
@@ -59,8 +59,8 @@ export default function EmailConfirm() {
     }
 
     return (
-        <body>
-            <div className={styles.container}>
+        <div className={styles.container1}>
+            <div className={styles.container2}>
                 <div className={styles.navigation}>
                     <Link to="/signup">
                         <button className={styles.back}>&#60;</button>
@@ -74,6 +74,6 @@ export default function EmailConfirm() {
                     <input type="submit" className={button ? styles.submit_active : styles.submit} value="확인" />
                 </form>
             </div>
-        </body>
+        </div>
     );
 }

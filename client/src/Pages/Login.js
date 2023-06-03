@@ -92,13 +92,18 @@ export default function Login(){
             const password = values.pw;
 
             try {
-                const response = await axios.post('/api/login', { // 서버로 회원가입 요청 전송
+                const response = await axios.post('/api/login', { // 서버로 로그인 요청 전송
                     id: id,
                     password: password
                 });
 
                 console.log(response.data); // 서버의 응답 출력
-                window.location = "/main";
+                if (response.data.result === 'success'){
+                    window.location = "/main";
+                } else if (response.data.result === 'fail'){
+                    window.alert(response.data.msg);
+                }
+                
             } catch (error) {
                 console.error(error);
             }
@@ -106,8 +111,8 @@ export default function Login(){
     }
 
     return(
-        <body>
-            <div className={styles.container}>
+        <div className={styles.container1}>
+            <div className={styles.container2}>
                 <div className={styles.navigation}>
                 <Link to="/first">
                     <button className={styles.back}>&#60;</button>
@@ -122,6 +127,6 @@ export default function Login(){
                     <input type="submit" className={button ? styles.submit_active : styles.submit} value="확인"/>
                 </form>
             </div>    
-        </body>
+        </div>
     );  
 }
