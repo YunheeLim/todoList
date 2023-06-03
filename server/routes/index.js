@@ -5,10 +5,10 @@ const session = require('express-session');
 const auth = require('../controller/auth.js');
 const db = require('../config/db.js');
 const sess = require('../controller/sessionChecker.js');
-const signupController=require('../controller/signUp.js');
 const { raw } = require('body-parser');
 
-// req.session.userId에 값이 있냐 없냐로 사용자가 로그인 되어있는지 안되어있는지 구분
+const signupController = require('../controller/signupController.js');
+const loginController = require('../controller/loginController.js');
 
 // index 페이지 
 router.get('/', sess.sessionExist, function (req, res, next) {
@@ -34,13 +34,14 @@ router.post('/signup', async (req, res) => {
     console.log('user: ', user.id + ' - sign up fail: invalid input data');
     res.render('signup', { error: '유효하지 않은 입력입니다.' });
   }
-  let signupResult=await signupController.signup(user);
-  console.log("signupResult:",signupResult);
-  if(signupResult.result){
+  let signupResult = await signupController.signup(user);
+  console.log("signupResult:", signupResult);
+  if (signupResult.result) {
+    req.session.signupId = user.id; // signupAuth 처리할 때 아이디 주기 위해 세션에 저장
     let msg = email + " 주소로 인증코드가 전송되었습니다. 인증코드를 제출해 이메일 인증을 완료해주세요."
-    res.render('signupAuth',{msg:msg});
-  } else{
-    res.render('signup',{error:signupResult.msg, id: user.id, name: user.name, email: user.email })
+    res.render('signupAuth', { msg: msg });
+  } else {
+    res.render('signup', { error: signupResult.msg, id: user.id, name: user.name, email: user.email })
   }
 });
 
@@ -57,20 +58,17 @@ router.get('/signupAuth', sess.sessionNotExist, (req, res) => {
 // 사용자가 제출한 인증코드 값 비교 후 회원가입 처리
 router.post('/signupAuth', async (req, res) => {
   const usrInput = Number(req.body.authCode);
-  console.log("usr Input: " + usrInput + ", session value: " + req.session.authCode);
-  if (usrInput === req.session.authCode) { // 인증코드 일치하는 경우, 회원가입 처리
-    let result = await db.Query('INSERT INTO User SET ?', req.session.user);
-    console.log('user: ', req.session.user.id + ' - sign up success');
-    delete req.session.user; // db에 입력하기 위해 임시로 저장한 req.session.user 삭제
+  let signupAuthResult = await signupController.signupAuth(req.session.signupId, usrInput);
+  if (signupAuthResult.result) { // 인증 성공
+    delete req.session.signupId;
     res.redirect('/signupResult');
-  } else{ //인증코드 불일치
-    let msg = "인증코드가 일치하지 않습니다."
-    res.render('signupAuth', { msg: msg })
+  } else { // 인증 실패
+    res.render('signupAuth', { msg: signupAuthResult.msg });
   }
 })
 
 // 회원가입완료 페이지 렌더링
-router.get('/signupResult', sess.sessionNotExist,(req, res) => {
+router.get('/signupResult', sess.sessionNotExist, (req, res) => {
   res.render('signupResult');
 })
 
@@ -84,15 +82,12 @@ router.post('/login', async (req, res) => {
   const id = req.body.id;
   const pw = req.body.password;
 
-  let result = await db.Query ('SELECT * FROM User WHERE id=? AND password=?', [id, pw]);
-  if (result.length!=0){ // 결과 존재
-    console.log('user: ', id + ' - login success');
-    req.session.isLogined = true;
+  let loginResult = await loginController.login(id, pw);
+  if (loginResult.result) {
     req.session.userId = req.body.id;
     res.redirect('main');
-  } else{ //결과 없음
-    console.log('user: ', id + ' - login fail: No such ID or PW');
-    res.render('login', { error: '존재하지 않는 아이디 또는 비밀번호 입니다.' });
+  } else {
+    res.render('login', { error: loginResult.msg });
   }
 })
 
