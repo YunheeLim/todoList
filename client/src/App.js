@@ -3,7 +3,8 @@ import First from './Pages/First';
 import Login from './Pages/Login';
 import SignUp from './Pages/SignUp';
 import Main from './Pages/Main';
-import EmailConfirm from "./Pages/EmailConfirm";
+import SignUpAuth from './Pages/SignUpAuth';
+import SignUpResult from './Pages/SignUpResult';
 
 function App() {
 
@@ -13,7 +14,8 @@ function App() {
       <Route path="/first" element={<First/>}/>
       <Route path="/login" element={<Login/>}/>
       <Route path="/signup" element={<SignUp/>}/>
-      <Route path="/emailconfirm" element={<EmailConfirm/>}/>
+      <Route path="/signupAuth" element={<SignUpAuth/>}/>
+      <Route path="/signupResult" element={<SignUpResult/>}/>
       <Route path="/main" element={<Main/>}/>
 
     </Routes>

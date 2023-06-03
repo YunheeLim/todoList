@@ -1,0 +1,29 @@
+.navigation{
+    width: 40%;
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+.icons{
+    color: #BDBDBD;
+}
+
+.icons_selected{
+    color: #6E6E6E;
+}
+
+.icon_texts{
+    color: #A4A4A4;
+    font-size: 0.5rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+.icon_texts_selected{
+    color: #6E6E6E;
+    font-size: 0.5rem;
+    font-weight: bold;
+    text-align: center;
+}
