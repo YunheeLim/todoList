@@ -21,11 +21,7 @@ router.post('/signup', async (req, res) => {
 
   let signupResult = await signupController.signup(user);
   console.log("signupResult:", signupResult);
-  if (signupResult.result) { // 메일 전송 성공
-    res.json({ result: true, msg: signupResult.msg, email: email });
-  } else { // 메일 전송 실패 또는 id,email 중복
-    res.json({ result: false, msg: signupResult.msg });
-  }
+  res.json(signupResult);
 });
 
 // 인증코드 폼 제출 요청 처리

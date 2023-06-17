@@ -5,8 +5,8 @@ const emailAuth = require('./emailAuth.js');
 
 /**
  * post(/signup)요청 처리 : db에 인증대기 회원으로 등록 후 인증메일 전송
- * @param {*} user 회원가입 user 정보
- * @returns {*} {result,msg}
+ * @param {*} user 
+ * @returns {*} 
  */
 module.exports.signup = async (user) => {
     //db에 해당 id, email 정보 존재하는지 검색
@@ -23,7 +23,7 @@ module.exports.signup = async (user) => {
             return { result: false, msg: 'emailResult:undefined, 이메일 전송에 실패했습니다.' }
         }
         if (emailResult.result) {
-            return { result: true, msg: '인증코드가 전송되었습니다.' }
+            return { result: true, msg: '인증코드가 전송되었습니다.',user : {id:user.id, name:user.name, email:user.email} }
         } else {
             console.log(emailResult.message);
             return { result: false, msg: '이메일 전송에 실패했습니다.' }
@@ -49,7 +49,7 @@ module.exports.signup = async (user) => {
                     return { result: false, msg: '이메일 전송에 실패했습니다.' }
                 }
                 if (emailResult.result) {
-                    return { result: true, msg: '이메일이 전송되었습니다.' }
+                    return { result: true, msg: '이메일이 전송되었습니다.',user : {id:user.id, name:user.name, email:user.email} }
                 } else {
                     console.log(emailResult.message);
                     return { result: false, msg: '이메일 전송에 실패했습니다.' }
