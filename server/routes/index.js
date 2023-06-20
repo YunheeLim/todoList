@@ -10,6 +10,16 @@ const { raw } = require('body-parser');
 const signupController = require('../controller/signupController.js');
 const loginController = require('../controller/loginController.js');
 
+/*
+req.session
+{
+  userNum : 회원번호
+}
+*/
+
+
+
+
 // index 페이지 
 router.get('/', sess.sessionExist, function (req, res, next) {
   res.redirect('/main');
@@ -37,7 +47,7 @@ router.post('/signup', async (req, res) => {
   let signupResult = await signupController.signup(user);
   console.log("signupResult:", signupResult);
   if (signupResult.result) {
-    req.session.signupId = user.id; // signupAuth 처리할 때 아이디 주기 위해 세션에 저장
+    req.session.userNum = signupResult.userNum; // 세션에 회원번호 저장
     let msg = email + " 주소로 인증코드가 전송되었습니다. 인증코드를 제출해 이메일 인증을 완료해주세요."
     res.render('signupAuth', { msg: msg });
   } else {
@@ -45,8 +55,9 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// 인증메일 발송 & 이메일인증 페이지 렌더링
+// 인증메일 발송 & 이메일인증 페이지 렌더링 -> 사용 안되고 있음
 router.get('/signupAuth', sess.sessionNotExist, (req, res) => {
+  console.log("req.session: ",req.session)
   if (req.session.user.email) { // 세션에 이메일이 있는 경우 (정상적인 접근)
     let msg = req.session.user.email + " 주소로 인증코드가 전송되었습니다. 인증코드를 제출해 이메일 인증을 완료해주세요."
     res.render('signupAuth', { msg: msg });
@@ -58,9 +69,9 @@ router.get('/signupAuth', sess.sessionNotExist, (req, res) => {
 // 사용자가 제출한 인증코드 값 비교 후 회원가입 처리
 router.post('/signupAuth', async (req, res) => {
   const usrInput = Number(req.body.authCode);
-  let signupAuthResult = await signupController.signupAuth(req.session.signupId, usrInput);
+  let signupAuthResult = await signupController.signupAuth(req.session.userNum, usrInput);
   if (signupAuthResult.result) { // 인증 성공
-    delete req.session.signupId;
+    delete req.session.userNum;
     res.redirect('/signupResult');
   } else { // 인증 실패
     res.render('signupAuth', { msg: signupAuthResult.msg });
@@ -84,7 +95,8 @@ router.post('/login', async (req, res) => {
 
   let loginResult = await loginController.login(id, pw);
   if (loginResult.result) {
-    req.session.userId = req.body.id;
+    req.session.userNum = loginResult.userNum;
+    console.log(loginResult)
     res.redirect('main');
   } else {
     res.render('login', { error: loginResult.msg });
