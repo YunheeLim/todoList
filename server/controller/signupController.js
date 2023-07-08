@@ -5,8 +5,8 @@ const emailAuth = require('./emailAuth.js');
 
 /**
  * post(/signup)요청 처리 : db에 인증대기 회원으로 등록 후 인증메일 전송
- * @param {*} user 회원가입 user 정보
- * @returns {*} {result,msg}
+ * @param {*} user 
+ * @returns {*} 
  */
 module.exports.signup = async (user) => {
     //db에 해당 id, email 정보 존재하는지 검색
@@ -15,7 +15,8 @@ module.exports.signup = async (user) => {
         // db에 인증대기 회원으로 등록
         let sql = 'INSERT INTO User SET ?';
         let set = { user_id: user.id, password: user.password, email: user.email, user_name: user.name };
-        await db.Query(sql, set);
+        let insertResult=await db.Query(sql, set);
+        let userNum=insertResult['insertId']; // insert query의 리턴값에서 회원 번호 저장
 
         // 이메일인증 절차
         let emailResult = await emailAuth.emailAuthentication(user);
@@ -23,7 +24,7 @@ module.exports.signup = async (user) => {
             return { result: false, msg: 'emailResult:undefined, 이메일 전송에 실패했습니다.' }
         }
         if (emailResult.result) {
-            return { result: true, msg: '인증코드가 전송되었습니다.' }
+            return { result: true, msg: '인증코드가 전송되었습니다.',user : {id:user.id, name:user.name, email:user.email}, userNum }
         } else {
             console.log(emailResult.message);
             return { result: false, msg: '이메일 전송에 실패했습니다.' }
@@ -44,12 +45,11 @@ module.exports.signup = async (user) => {
                 }
 
                 let emailResult = await emailAuth.emailAuthentication(user);
-                console.log("signup.js emailResult:", emailResult)
                 if (!emailResult) {
                     return { result: false, msg: '이메일 전송에 실패했습니다.' }
                 }
                 if (emailResult.result) {
-                    return { result: true, msg: '이메일이 전송되었습니다.' }
+                    return { result: true, msg: '이메일이 전송되었습니다.',user : {id:user.id, name:user.name, email:user.email},userNum }
                 } else {
                     console.log(emailResult.message);
                     return { result: false, msg: '이메일 전송에 실패했습니다.' }
@@ -57,8 +57,7 @@ module.exports.signup = async (user) => {
             } else if (user.id == elem.user_id) { // 1번 case -> 가입 불가
                 console.log('user: ', user.id + ' - sign up fail: ID already exist');
                 return { result: false, msg: '이미 사용중인 아이디입니다.' }
-            } else if (user.email == elem.email) {
-                //이미 사용중인 email인 경우 -> 가입 불가
+            } else if (user.email == elem.email) { //이미 사용중인 email인 경우 -> 가입 불가
                 console.log('user: ', user.email + ' - sign up fail: email already exist');
                 return { result: false, msg: '이미 사용중인 이메일입니다.' }
             }
@@ -71,23 +70,22 @@ module.exports.signup = async (user) => {
  * @param {*} userId 
  * @param {*} userCode 
  */
-module.exports.signupAuth = async (userId, userCode) => {
+module.exports.signupAuth = async (userNum, userCode) => {
 
-    //emailauth 테이블에서 비교하기 위한 user_num 검색
-    let result = await db.Query('SELECT user_num FROM User WHERE user_id = ?', [userId]);
-    let user_num = result[0].user_num;
-
-    // userId의 user_num을 갖는 인증코드 발급 내역 중 현재 시각으로부터 5분 이내에 발급된 것 중 가장 최근 내역의 auth_code 겁색
+    // userNum을 갖는 인증코드 발급 내역 중 현재 시각으로부터 5분 이내에 발급된 것 중 가장 최근 내역의 auth_code 겁색
     let sql = 'SELECT auth_code FROM EmailAuth WHERE user_num = ? AND auth_time >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) ORDER BY auth_time DESC LIMIT 1'
-    let result2 = await db.Query(sql, [user_num]);
-    let dbCode = result2[0].auth_code;
-    console.log("userInput Code: ", userCode, "db authCode: ", dbCode);
-
-    if (userCode === dbCode) { // 인증코드 일치하는 경우, 회원가입 처리
-        await db.Query('UPDATE User SET user_status=\'가입완료\',signup_date=NOW() WHERE user_num= ?;', [user_num]);
-        console.log('user: ', userId + ' - sign up success');
+    let result = await db.Query(sql, [userNum]);
+    if(result.length!=0){ // 인증코드 발급 내역 존재
+        let dbCode = result[0].auth_code;
+        console.log("userInput Code: ", userCode, "db authCode: ", dbCode);
+        if (userCode === dbCode) { // 인증코드 일치하는 경우, 회원가입 처리
+        await db.Query('UPDATE User SET user_status=\'가입완료\',signup_date=NOW() WHERE user_num= ?;', [userNum]);
+        console.log('userNum: ', userNum + ' - sign up success');
         return { result: true, msg: '회원가입에 성공했습니다.' };
     } else { //인증코드 불일치
         return { result: false, msg: '인증코드가 일치하지 않습니다.' }
     }
+    }else{
+        return { result: false, msg: '인증코드 유효기간이 만료되었습니다.' }
+    } 
 }

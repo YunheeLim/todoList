@@ -1,0 +1,62 @@
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th,
+td {
+  padding: 8px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+td {
+  background-color: #ffffff;
+}
+
+td.unclicked {
+  color: black;
+}
+
+td.clicked {
+  color: red;
+}
+
+#todoList {
+  margin-top: 20px;
+}
+
+.todo-item {
+  margin-bottom: 10px;
+}
+
+.todo-item .delete-button {
+  cursor: pointer;
+  color: red;
+  margin-left: 10px;
+}
+
+
+/* .todo-item input[type="checkbox"] {
+  display: none;
+}
+
+.todo-item input[type="checkbox"]+label {
+  cursor: pointer;
+}
+
+.todo-item input[type="checkbox"]+label:before {
+  content: "\2610";
+  빈 체크박스
+  display: inline-block;
+  margin-right: 5px;
+} */
+
+/* .todo-item input[type="checkbox"]:checked+label:before {
+  content: "\2611";
+  //체크된 체크박스
+} */

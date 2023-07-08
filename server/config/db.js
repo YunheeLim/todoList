@@ -25,8 +25,7 @@ const db = mysql.createPool({
  * @returns 
  */
 module.exports.Query = async (sql, param) =>{
-
-  let conn = await db.getConnection();
+    let conn = await db.getConnection();
   
   //구조분해할당, query 는 select 결과, 필드정보 가 [ [] , [] ] 형태로 반환되므로 구조분해할당 으로
   //결과에 해당하는 [] 만 받으려면 [result] 로 할당 받는다
