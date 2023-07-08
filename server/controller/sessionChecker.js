@@ -6,7 +6,7 @@ const sess={};
 // 세션 있으면 next로, 세션 없으면 index page로
 sess.sessionExist = (req, res, next) => {
   // 세션이 존재하는지 확인
-  if (req.session&&req.session.userId) {
+  if (req.session&&req.session.userNum) {
     // 세션 정보가 있는 경우, 다음 미들웨어로 이동
     next();
   } else {

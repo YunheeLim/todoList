@@ -36,7 +36,6 @@ router.post('/signup', async (req, res) => {
 });
 
 // 인증코드 폼 제출 요청 처리
-// 리액트 서버 post로 확인해야함!!
 router.post('/signupAuth', async (req, res) => {
   const usrInput = Number(req.body.authCode);
   let signupAuthResult = await signupController.signupAuth(req.session.userNum, usrInput);
@@ -47,7 +46,6 @@ router.post('/signupAuth', async (req, res) => {
 })
 
 // 로그인 요청 처리
-// 리액트 서버 post로 확인해야함!!
 router.post('/login', async (req, res) => {
   const id = req.body.id;
   const pw = req.body.password;

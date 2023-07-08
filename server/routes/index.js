@@ -14,6 +14,7 @@ const loginController = require('../controller/loginController.js');
 req.session
 {
   userNum : 회원번호
+  userName : 회원 닉네임
 }
 */
 
@@ -96,8 +97,10 @@ router.post('/login', async (req, res) => {
   let loginResult = await loginController.login(id, pw);
   if (loginResult.result) {
     req.session.userNum = loginResult.userNum;
+    req.session.userName = loginResult.user.name;
+    user= loginResult.user;
     console.log(loginResult)
-    res.redirect('main');
+    res.redirect('/main');
   } else {
     res.render('login', { error: loginResult.msg });
   }
@@ -105,14 +108,20 @@ router.post('/login', async (req, res) => {
 
 // main 페이지 렌더링
 router.get('/main', sess.sessionExist, (req, res) => {
-  res.render('main', { name: req.session.userId });
+  res.render('main', { name: req.session.userName });
 });
 
 // logout 페이지 렌더링
 router.get('/logout', (req, res) => {
   req.session.destroy()
-  // req.session.is_logined=false;
   res.render('logout');
+});
+
+
+router.get('/main/todo/:year/:month',(req,res)=>{
+  var params=req.params;
+  console.log("get main/todo request:",params);
+  res.json(params);
 });
 
 module.exports = router;
