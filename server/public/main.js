@@ -1,4 +1,3 @@
-const { URL, URLSearchParams } = require('url');
 var currentYear = null;
 var currentMonth = null;
 
@@ -13,98 +12,166 @@ var todayYear = today.getFullYear();
 var todayMonth = today.getMonth();
 var todayDate = today.getDate();
 
-async function getTodoData(year,month) {
-  var params = {year:year, month:month}
-  const response = await fetch("http://localhost:8080/main/todo?"+ new URLSearchParams(params));
-  const jsonData = await response.json();
-  console.log(jsonData);
-  return jsonData;
+var todoData = []; // 2차원 배열로, 해당 월의 각 일자별 투두 목록을 저장
+var clickedTodoData = []; // 현재 클릭된 일자의 투두 목록을 저장
+
+// 날짜 format 함수
+function formatDate(year, month, day) {
+  // month와 day가 한 자리 수인 경우 앞에 0을 추가하여 두 자리로 만듭니다.
+  const formattedMonth = month.toString().padStart(2, "0");
+  const formattedDay = day.toString().padStart(2, "0");
+
+  // yyyymmdd 형식의 문자열로 변환하여 반환합니다.
+  return `${year}${formattedMonth}${formattedDay}`;
 }
 
+// todoData array를 초기화하고 todoResult로 셋팅하는 함수
+async function setTodoData(year, month, todoResult) {
+  return new Promise((resolve, reject) => {
+    var lastDay = new Date(year, month, 0);
+    var endDate = lastDay.getDate();
+    todoData = new Array(endDate); // 해당 월의 일수만큼 array 생성
+    for (i = 0; i < todoData.length; i++) {
+      // 각 일마다 빈 array로 초기화, 2차원 배열 생성
+      todoData[i] = [];
+    }
 
-function generateCalendar(year, month) {
-  //해당 월의 투두 데이터 받아오기
-  
+    for (i = 0; i < todoResult.length; i++) {
+      // todoResult를 돌면서 todo_date의 일자에 해당하는 idx로 todoData에 투두 항목 추가
+      const dateString = todoResult[i].todo_date;
+      const date = new Date(dateString);
+      todoData[date.getDate() - 1].push(todoResult[i]);
+    }
 
-  // 현재 달력 테이블 초기화
-  var calendarTable = document.getElementById("calendarTable");
-  calendarTable.innerHTML = "";
+    console.log(todoData);
+    resolve();
+  });
+}
 
-  // 달력 헤더 생성
-  var headerRow = document.createElement("tr");
-  headerRow.innerHTML = "<th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>";
-  calendarTable.appendChild(headerRow);
+// 서버로부터 해당 날짜의 투두 데이터 받아옴 -> todo_count 값 갱신 -> todoData array에 저장
+async function getTodoData(year, month) {
+  return new Promise(async (resolve, reject) => {
+    var params = { userId: userId, year: year, month: month };
+    const response = await fetch(
+      "http://localhost:8080/main/todo?" + new URLSearchParams(params)
+    );
+    const jsonData = await response.json();
+    const todoResult = jsonData.todoResult;
 
-  // 달력 내용 생성
-  var firstDay = new Date(year, month, 1);
-  var startDay = firstDay.getDay();
-  var lastDay = new Date(year, month + 1, 0);
-  var endDate = lastDay.getDate();
-  var date = 1;
+    console.log(todoResult);
+    console.log(typeof todoResult);
+    await setTodoData(year, month, todoResult);
 
-  for (var i = 0; i < 6; i++) {
-    var row = document.createElement("tr");
+    let todo_count = document.getElementById("todo_count");
+    todo_count.innerText = todoResult.length;
+    resolve(todoResult);
+  });
+}
 
-    for (var j = 0; j < 7; j++) {
-      if (i === 0 && j < startDay) {
-        var cell = document.createElement("td");
-        cell.className="unclicked"
-        row.appendChild(cell);
-      } else if (date > endDate) {
+// 특정 일자의 todo array를 받아 html 요소로 추가해주는 함수
+function addClickedTodo(todoArray) {
+  var todoList = document.getElementById("todoList");
+  todoList.innerHTML = "";
+
+  for (i = 0; i < todoArray.length; i++) {
+    setTodoItem(todoArray[i].todo_cont, todoArray[i].todo_id);
+  }
+}
+
+//달력 생성 후 서버로부터 해당 월의 투두 목록 받아오는 함수
+async function generateCalendar(year, month) {
+  return new Promise(async (resolve, reject) => {
+    // 현재 달력 테이블 초기화
+    var calendarTable = document.getElementById("calendarTable");
+    calendarTable.innerHTML = "";
+
+    // 달력 헤더 생성
+    var headerRow = document.createElement("tr");
+    headerRow.innerHTML =
+      "<th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>";
+    calendarTable.appendChild(headerRow);
+
+    // 달력 내용 생성
+    var firstDay = new Date(year, month, 1);
+    var startDay = firstDay.getDay();
+    var lastDay = new Date(year, month + 1, 0);
+    var endDate = lastDay.getDate();
+    var date = 1;
+
+    for (var i = 0; i < 6; i++) {
+      var row = document.createElement("tr");
+      for (var j = 0; j < 7; j++) {
+        if (i === 0 && j < startDay) {
+          var cell = document.createElement("td");
+          cell.className = "unclicked";
+          row.appendChild(cell);
+        } else if (date > endDate) {
+          break;
+        } else {
+          var cell = document.createElement("td");
+          cell.innerText = date;
+          cell.id = "cal_" + formatDate(year, month + 1, date); // cell마다 id 부여
+          cell.className = "unclicked";
+
+          // 날짜 셀에 클릭 이벤트 추가
+          cell.onclick = function () {
+            // 전에 클릭된 cell의 class 변경
+            clickedCell = document.getElementsByClassName("clicked");
+            for (var i = 0; i < clickedCell.length; i++) {
+              clickedCell[i].className = "unclicked";
+            }
+            this.className = "clicked"; // 현재 클릭된 날짜에 clicked class 부여
+            clicked = true;
+
+            //클릭한 날짜 정보 저장
+            clickedYear = year;
+            clickedMonth = month + 1;
+            clickedDate = parseInt(this.innerText);
+
+            var clickedDateText = document.getElementById("clickedDate");
+            clickedDateText.innerText =
+              clickedYear + "년" + clickedMonth + "월 " + clickedDate + "일";
+
+            // clickedTodoData 저장
+            console.log(
+              "clicked event:",
+              clickedYear,
+              clickedMonth,
+              clickedDate
+            );
+            clickedTodoData = todoData[clickedDate - 1];
+            console.log(clickedTodoData);
+            addClickedTodo(clickedTodoData);
+          };
+
+          if (clicked) {
+            // 클릭된 cell이 현재 그리려는 cell과 일치하는 경우 clicked class 부여
+            if (
+              year === clickedYear &&
+              month + 1 === clickedMonth &&
+              date === clickedDate
+            ) {
+              cell.className = "clicked";
+            }
+          }
+          row.appendChild(cell);
+          date++;
+        }
+      }
+
+      calendarTable.appendChild(row);
+      if (date > endDate) {
         break;
-      } else {
-        var cell = document.createElement("td");
-        cell.innerText = date;
-        cell.className="unclicked"
-        // 날짜 셀에 클릭 이벤트 추가
-        cell.onclick = function () {
-          // 전에 클릭된 cell의 class 변경
-          clickedCell=document.getElementsByClassName("clicked");
-          for(var i=0;i<clickedCell.length;i++){
-            clickedCell[i].className="unclicked";
-          }
-
-
-          // 현재 클릭된 날짜에 clicked class 부여
-          this.className = "clicked";
-          clicked=true;
-
-          //클릭한 날짜 정보 저장
-          clickedYear=year;
-          clickedMonth=month+1;
-          clickedDate=parseInt(this.innerText);
-        };
-
-        if(clicked){ // 클릭된 cell이 현재 그리려는 cell과 일치하는 경우 clicked class 부여
-          if(year === clickedYear && month+1 === clickedMonth && date === clickedDate){
-            cell.className="clicked";
-          }
-        }
-
-        row.appendChild(cell);
-
-        if(!clicked){ // 처음 페이지 로딩때
-          if (year === todayYear && month === todayMonth && date === todayDate) {
-            cell.click();
-          }
-        }
-        date++;
       }
     }
+    // 이번 달 표시
+    var currentMonthTitle = document.getElementById("currentMonthTitle");
+    currentMonthTitle.innerText = month + 1 + "월";
 
-    calendarTable.appendChild(row);
-
-    if (date > endDate) {
-      break;
-    }
-  }
-
-  // 이번 달 표시
-  var currentMonthTitle = document.getElementById("currentMonthTitle");
-  currentMonthTitle.innerText = (month + 1) + "월";
-
-  getTodoData(year,month);
-
+    //달력 모두 생성 후 해당 월의 todo data 받아오기
+    let result = await getTodoData(year, month + 1);
+    resolve(result);
+  });
 }
 
 function previousMonth() {
@@ -147,32 +214,68 @@ function nextMonth() {
 var today = new Date();
 var tY = today.getFullYear();
 var tM = today.getMonth();
+const promise = generateCalendar(tY, tM);
+promise.then(() => {
+  // generateCalendar -> getTodoData -> setTodoData 까지 완료된 후 click 발생
+  if (!clicked) {
+    // 처음 페이지 로딩때 오늘 날짜에 해당하는 cell을 클릭
+    let cell = document.getElementById(
+      "cal_" + formatDate(todayYear, todayMonth + 1, todayDate)
+    );
+    cell.click();
+  }
+});
 
-generateCalendar(tY, tM);
+// clickedTodoData array로부터 html요소를 추가
+function setTodoItem(todoText, todoId) {
+  if (todoText !== "") {
+    var todoList = document.getElementById("todoList");
 
+    // 새로운 항목을 생성하여 todoList에 추가
+    var newItem = document.createElement("div");
+    newItem.className = "todo-item";
+    newItem.id = "todo_" + todoId;
 
+    var checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    var label = document.createElement("label");
+    label.textContent = todoText;
+    var deleteButton = document.createElement("span");
+    deleteButton.className = "delete-button";
+    deleteButton.textContent = "X";
+
+    deleteButton.addEventListener("click", function () {
+      deleteTodoItem(newItem);
+    });
+
+    newItem.appendChild(checkbox);
+    newItem.appendChild(label);
+    newItem.appendChild(deleteButton);
+    todoList.appendChild(newItem);
+  }
+}
 
 // 투두리스트 항목 추가를 처리하는 함수
 function addTodoItem() {
-  var todoInput = document.getElementById('todoInput');
+  var todoInput = document.getElementById("todoInput");
   var todoText = todoInput.value.trim();
 
-  if (todoText !== '') {
-    var todoList = document.getElementById('todoList');
+  if (todoText !== "") {
+    var todoList = document.getElementById("todoList");
 
     // 새로운 항목을 생성하여 todoList에 추가
-    var newItem = document.createElement('div');
-    newItem.className = 'todo-item';
+    var newItem = document.createElement("div");
+    newItem.className = "todo-item";
 
-    var checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    var label = document.createElement('label');
+    var checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    var label = document.createElement("label");
     label.textContent = todoText;
-    var deleteButton = document.createElement('span');
-    deleteButton.className = 'delete-button';
-    deleteButton.textContent = 'X';
+    var deleteButton = document.createElement("span");
+    deleteButton.className = "delete-button";
+    deleteButton.textContent = "X";
 
-    deleteButton.addEventListener('click', function () {
+    deleteButton.addEventListener("click", function () {
       deleteTodoItem(newItem);
     });
 
@@ -182,19 +285,40 @@ function addTodoItem() {
     todoList.appendChild(newItem);
 
     // 입력 필드 초기화
-    todoInput.value = '';
+    todoInput.value = "";
   }
 }
 
 function deleteTodoItem(item) {
-  var todoList = document.getElementById('todoList');
+  var todoList = document.getElementById("todoList");
   todoList.removeChild(item);
 }
 
-// 폼 제출 이벤트 처리
-document.getElementById('addForm').addEventListener('submit', function (e) {
-  console.log("ClickedCell Date:", clickedYear,clickedMonth,clickedDate);
-  e.preventDefault();
-  addTodoItem();
-},false);
+async function postTodoData(data) {
+  const response = await fetch("http://localhost:8080/main/todo", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  return response.json();
+}
 
+// 폼 제출 이벤트 처리
+document.getElementById("addForm").addEventListener(
+  "submit",
+  async function (e) {
+    console.log("ClickedCell Date:", clickedYear, clickedMonth, clickedDate);
+    e.preventDefault();
+    var todoInput = document.getElementById("todoInput");
+    var todoText = todoInput.value.trim();
+    console.log("todoTExt:", todoText);
+    // 투두 항목 추가 api 호출
+    postTodoData({ todo_cont: todoText }).then((response) => {
+      console.log("postTodoData res: ", response);
+      addTodoItem();
+    });
+  },
+  false
+);
