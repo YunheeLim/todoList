@@ -1,9 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const session = require("express-session");
-
-const auth = require("../controller/auth.js");
-const db = require("../config/db.js");
 const sess = require("../controller/sessionChecker.js");
 const { raw } = require("body-parser");
 
@@ -36,28 +33,22 @@ router.get("/signup", sess.sessionNotExist, (req, res) => {
 
 // 회원 가입 요청 처리
 router.post("/signup", async (req, res) => {
-  const { id, name, email, password } = req.body;
-  const user = { id: id, name: name, email: email, password: password };
-  console.log(user);
-  if (!auth.isValidInput(user)) {
-    // 서버에서 입력 폼의 데이터 검사
-    console.log("user: ", user.id + " - sign up fail: invalid input data");
+  let signupResult = await signupController.signup(req, res);
+
+  console.log("signupResult:", signupResult);
+
+  if (signupResult.msg == "유효하지 않은 입력입니다.") {
     res.render("signup", { error: "유효하지 않은 입력입니다." });
   }
-  let signupResult = await signupController.signup(user);
-  console.log("signupResult:", signupResult);
   if (signupResult.result) {
-    req.session.userNum = signupResult.userNum; // 세션에 회원번호 저장
-    let msg =
-      email +
-      " 주소로 인증코드가 전송되었습니다. 인증코드를 제출해 이메일 인증을 완료해주세요.";
+    let msg = req.body.email + " 주소로 인증코드가 전송되었습니다. 인증코드를 제출해 이메일 인증을 완료해주세요.";
     res.render("signupAuth", { msg: msg });
   } else {
     res.render("signup", {
       error: signupResult.msg,
-      id: user.id,
-      name: user.name,
-      email: user.email,
+      id: req.body.id,
+      name: req.body.name,
+      email: req.body.email,
     });
   }
 });
@@ -67,9 +58,7 @@ router.get("/signupAuth", sess.sessionNotExist, (req, res) => {
   console.log("req.session: ", req.session);
   if (req.session.user.email) {
     // 세션에 이메일이 있는 경우 (정상적인 접근)
-    let msg =
-      req.session.user.email +
-      " 주소로 인증코드가 전송되었습니다. 인증코드를 제출해 이메일 인증을 완료해주세요.";
+    let msg = req.session.user.email + " 주소로 인증코드가 전송되었습니다. 인증코드를 제출해 이메일 인증을 완료해주세요.";
     res.render("signupAuth", { msg: msg });
   } else {
     // 세션에 이메일 없는 경우 (비정상적 접근)
@@ -79,16 +68,10 @@ router.get("/signupAuth", sess.sessionNotExist, (req, res) => {
 
 // 사용자가 제출한 인증코드 값 비교 후 회원가입 처리
 router.post("/signupAuth", async (req, res) => {
-  const usrInput = Number(req.body.authCode);
-  let signupAuthResult = await signupController.signupAuth(
-    req.session.userNum,
-    usrInput
-  );
-  if (signupAuthResult.result) {
-    // 인증 성공
-    delete req.session.userNum;
-    res.redirect("/signupResult");
-  } else {
+  let signupAuthResult = await signupController.signupAuth(req, res);
+  console.log("signupAuthResult: ", signupAuthResult);
+  if (signupAuthResult.result) res.redirect("/signupResult");
+  else {
     // 인증 실패
     res.render("signupAuth", { msg: signupAuthResult.msg });
   }
@@ -142,32 +125,14 @@ router.get("/main/todo", async (req, res) => {
   let toId = req.query.userId;
   let year = req.query.year;
   let month = req.query.month;
-  console.log(
-    "-- GET monthly todo -- from:",
-    fromId,
-    ", to: ",
-    toId,
-    "date: ",
-    year,
-    month
-  );
-  let todoResult = await mainController.getMonthlyTodo(
-    fromId,
-    toId,
-    year,
-    month
-  );
-  console.log(todoResult);
-  res.json({ todoResult });
+  console.log("-- GET monthly todo -- from:", fromId, ", to: ", toId, "date: ", year, month);
+  let todoData = await mainController.getMonthlyTodo(fromId, toId, year, month);
+  console.log(todoData);
+  res.json(todoData);
 });
 
 router.post("/main/todo", async (req, res) => {
-  console.log(
-    "req.session.userNum: ",
-    req.session.userNum,
-    "req.body: ",
-    req.body.todo_cont
-  );
+  console.log("req.session.userNum: ", req.session.userNum, "req.body: ", req.body.todo_cont);
   res.json({ result: true });
 });
 

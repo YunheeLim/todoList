@@ -56,15 +56,15 @@ async function getTodoData(year, month) {
       "http://localhost:8080/main/todo?" + new URLSearchParams(params)
     );
     const jsonData = await response.json();
-    const todoResult = jsonData.todoResult;
+    todoData = jsonData;
 
-    console.log(todoResult);
-    console.log(typeof todoResult);
-    await setTodoData(year, month, todoResult);
+    console.log(todoData);
+    console.log(typeof todoData);
+    //    await setTodoData(year, month, todoResult);
 
     let todo_count = document.getElementById("todo_count");
-    todo_count.innerText = todoResult.length;
-    resolve(todoResult);
+    todo_count.innerText = 1;
+    resolve(todoData);
   });
 }
 
