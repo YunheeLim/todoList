@@ -3,6 +3,7 @@ var router = express.Router();
 
 const signupController = require("../controller/signupController.js");
 const loginController = require("../controller/loginController.js");
+const mainController = require("../controller/mainController.js");
 
 /*
 req.session
@@ -39,6 +40,11 @@ router.post("/login", async (req, res) => {
 router.get("/logout", (req, res) => {
   req.session.destroy();
   res.json({ result: true });
+});
+
+router.get("/main/todo", async (req, res) => {
+  let todoData = await mainController.getMonthlyTodo(req, res);
+  res.json(todoData);
 });
 
 module.exports = router;

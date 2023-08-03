@@ -1,7 +1,7 @@
 const emailAuth = require("./emailAuthController.js");
 const auth = require("../controller/auth.js");
-const User = require("../models/user.js");
-const Auth = require("../models/auth.js");
+const User = require("../models/userModel.js");
+const Auth = require("../models/authModel.js");
 
 /**
  * post(/signup)요청 처리 : db에 인증대기 회원으로 등록 후 인증메일 전송

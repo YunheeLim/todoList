@@ -114,13 +114,7 @@ router.get("/logout", (req, res) => {
 
 // todo 목록 get 요청 처리
 router.get("/main/todo", async (req, res) => {
-  let fromId = req.session.userId;
-  let toId = req.query.userId;
-  let year = req.query.year;
-  let month = req.query.month;
-  console.log("-- GET monthly todo -- from:", fromId, ", to: ", toId, "date: ", year, month);
-  let todoData = await mainController.getMonthlyTodo(fromId, toId, year, month);
-  console.log(todoData);
+  let todoData = await mainController.getMonthlyTodo(req, res);
   res.json(todoData);
 });
 

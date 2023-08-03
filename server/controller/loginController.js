@@ -1,4 +1,4 @@
-const User = require("../models/user.js");
+const User = require("../models/userModel.js");
 
 function dateFormat(date) {
   let month = date.getMonth() + 1;

@@ -46,3 +46,9 @@ module.exports.updateLoginHistory = async (userNum, date) => {
   await db.Query("UPDATE User SET last_login_date=? WHERE user_num= ?", [date, userNum]); // 마지막 로그인 시각 업데이트
   return true;
 };
+
+module.exports.findUserNumById = async (userId) => {
+  let userNum = await db.Query("SELECT user_num FROM User WHERE user_id=?", [userId]);
+  userNum = userNum[0].user_num;
+  return userNum;
+};
