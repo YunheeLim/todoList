@@ -1,16 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const session = require("express-session");
 const sess = require("../controller/sessionChecker.js");
-const { raw } = require("body-parser");
 
 const signupController = require("../controller/signupController.js");
 const loginController = require("../controller/loginController.js");
 const mainController = require("../controller/mainController.js");
 
 /*
-req.session
+req.session : 로그인 성공 시 저장
 {
+  userId : 회원 아이디
   userNum : 회원번호
   userName : 회원 닉네임
 }
@@ -89,16 +88,10 @@ router.get("/login", sess.sessionNotExist, (req, res) => {
 
 // 로그인 요청 처리
 router.post("/login", async (req, res) => {
-  const id = req.body.id;
-  const pw = req.body.password;
-
-  let loginResult = await loginController.login(id, pw);
+  let loginResult = await loginController.login(req, res);
+  console.log("loginResult: ", loginResult);
   if (loginResult.result) {
-    req.session.userId = loginResult.user.id;
-    req.session.userNum = loginResult.userNum;
-    req.session.userName = loginResult.user.name;
-    user = loginResult.user;
-    console.log(loginResult);
+    console.log("req.session: ", req.session.userNum, req.session.userId, req.session.userName);
     res.redirect("/main");
   } else {
     res.render("login", { error: loginResult.msg });

@@ -1,10 +1,6 @@
 var express = require("express");
 var router = express.Router();
 
-const auth = require("../controller/auth.js");
-const db = require("../config/db.js");
-const sess = require("../controller/sessionChecker.js");
-
 const signupController = require("../controller/signupController.js");
 const loginController = require("../controller/loginController.js");
 
@@ -31,21 +27,12 @@ router.post("/signupAuth", async (req, res) => {
 
 // 로그인 요청 처리
 router.post("/login", async (req, res) => {
-  const id = req.body.id;
-  const pw = req.body.password;
-  let loginResult = await loginController.login(id, pw);
-  if (loginResult.result) {
-    // 로그인 성공
-    req.session.userNum = loginResult.userNum;
-    response = {
-      result: loginResult.result,
-      msg: loginResult.msg,
-      user: loginResult.user,
-    };
-    res.json(response);
-  } else {
-    res.json(loginResult);
-  }
+  let loginResult = await loginController.login(req, res);
+  console.log("loginResult: ", loginResult);
+
+  if (loginResult.result) console.log("req.session: ", req.session.userNum, req.session.userId, req.session.userName);
+
+  res.json(loginResult);
 });
 
 // 로그아웃 요청 처리

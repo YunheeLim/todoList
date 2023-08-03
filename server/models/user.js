@@ -30,3 +30,19 @@ module.exports.updateUserName = async (newName, userNum) => {
 module.exports.signUpUser = async (userNum) => {
   await db.Query("UPDATE User SET user_status='가입완료',signup_date=NOW() WHERE user_num= ?;", [userNum]);
 };
+
+module.exports.findByIdAndPw = async (id, pw) => {
+  let result = await db.Query("SELECT user_num,user_name FROM User WHERE user_id=? AND password=?", [id, pw]);
+
+  if (result.length != 0) {
+    // 결과 존재
+    let { user_num: userNum, user_name: userName } = result[0];
+    return { result: true, userNum: userNum, userName: userName };
+  } else return { result: false };
+};
+
+module.exports.updateLoginHistory = async (userNum, date) => {
+  await db.Query("INSERT Login_history SET?", { user_num: userNum, login_date: date });
+  await db.Query("UPDATE User SET last_login_date=? WHERE user_num= ?", [date, userNum]); // 마지막 로그인 시각 업데이트
+  return true;
+};
