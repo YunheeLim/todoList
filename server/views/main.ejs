@@ -1,50 +1,66 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="main.css" />
+    <title>첫 화면</title>
+  </head>
+  <script>
+    var userId = "<%= userId %>";
+  </script>
+  <body>
+    <h1>메인 화면</h1>
+    <h2>프로필</h2>
+    <p>이미지</p>
+    <p><%= name %></p>
+    <p>자기소개 메세지</p>
+    <br />
+    <h2 id="currentMonthTitle">이번 달 달력</h2>
+    <div class="container">
+      <div class="box">
+        <button onclick="previousMonth()">이전 달</button>
+      </div>
+      <div class="box">
+        <button onclick="nextMonth()">다음 달</button>
+      </div>
+      <div class="box">
+        <div>todo count:</div>
+      </div>
+      <div class="box">
+        <div id="todo_count"></div>
+      </div>
+      <div class="box">
+        <div>sticker count:</div>
+      </div>
+      <div class="" box>
+        <div id="sticker_count"></div>
+      </div>
+    </div>
+    <table id="calendarTable">
+      <tr>
+        <th>일</th>
+        <th>월</th>
+        <th>화</th>
+        <th>수</th>
+        <th>목</th>
+        <th>금</th>
+        <th>토</th>
+      </tr>
+    </table>
 
-<head>
-  <meta charset="utf-8">
-  <link rel="stylesheet" href="main.css"/>
-  <title>첫 화면</title>
+    <br />
+    <div id="clickedDate"></div>
+    <div id="todoList">
+      <!-- 여기에 동적으로 추가되는 항목이 들어갈 예정 -->
+    </div>
 
-</head>
+    <form id="addForm">
+      <input type="text" id="todoInput" placeholder="할 일 입력" />
+      <button type="submit">추가</button>
+    </form>
+    <br />
+    <button type="button" onclick="location.href='/logout'">Logout</button>
+  </body>
 
-<body>
-  <h1>메인 화면</h1>
-  <h2>프로필</h2>
-  <p>이미지</p>
-  <p>
-    <%= name %>
-  </p>
-  <p>자기소개 메세지</p>
-  <br>
-  <h2 id="currentMonthTitle">이번 달 달력</h2>
-  <button onclick="previousMonth()">이전 달</button>
-  <button onclick="nextMonth()">다음 달</button>
-  <table id="calendarTable">
-    <tr>
-      <th>일</th>
-      <th>월</th>
-      <th>화</th>
-      <th>수</th>
-      <th>목</th>
-      <th>금</th>
-      <th>토</th>
-    </tr>
-  </table>
-
-  <br>
-  <div id="todoList">
-    <!-- 여기에 동적으로 추가되는 항목이 들어갈 예정 -->
-  </div>
-
-  <form id="addForm">
-    <input type="text" id="todoInput" placeholder="할 일 입력">
-    <button type="submit">추가</button>
-  </form>
-  <br>
-  <button type="button" onclick="location.href='/logout'">Logout</button>
-
-</body>
-<script src="main.js"></script>
-
+  <script src="main.js"></script>
 </html>
