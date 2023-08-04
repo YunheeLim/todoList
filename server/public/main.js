@@ -12,10 +12,16 @@ var todayYear = today.getFullYear();
 var todayMonth = today.getMonth();
 var todayDate = today.getDate();
 
-var todoData = []; // JSON 배열로, 해당 월 모든 투두 목록 저장
-var clickedTodoData = []; // 현재 클릭된 일자의 투두 목록을 저장
+var todoData = []; // JSON 배열로, 해당 월 모든 투두 JSON 저장
+var clickedTodoData = new Array(); // 현재 클릭된 일자의 투두 JSON을 저장
 
-// 날짜 format 함수
+/**
+ * 입력 년월일을 'yyyymmdd' 로 포맷
+ * @param {*} year
+ * @param {*} month
+ * @param {*} day
+ * @returns
+ */
 function formatDate(year, month, day) {
   // month와 day가 한 자리 수인 경우 앞에 0을 추가하여 두 자리로 만듭니다.
   const formattedMonth = month.toString().padStart(2, "0");
@@ -23,6 +29,21 @@ function formatDate(year, month, day) {
 
   // yyyymmdd 형식의 문자열로 변환하여 반환합니다.
   return `${year}${formattedMonth}${formattedDay}`;
+}
+
+/**
+ * mysql의 datetime 자료형을 javascript Date 객체로 변환
+ * @param {*} string
+ * @returns
+ */
+function datetimeToDate(string) {
+  //string: '2022-06-01T07:26:04'
+  dateString = string.split("T")[0];
+  //dateString: '2022-06-01'
+  date = dateString.split("-");
+
+  let setDate = new Date(Number(date[0]), Number(date[1]) - 1, Number(date[2]));
+  return setDate;
 }
 
 /**
@@ -54,7 +75,23 @@ async function getTodoData(year, month) {
  * @param {*} month
  * @param {*} date
  */
-function getClickedTodoData(year, month, date) {}
+function getClickedTodoData(year, month, date) {
+  let clickedDateTodo = [];
+  if (todoData.length) {
+    // 해당 월의 투두 데이터 있는 경우에만
+    let i = 0;
+    while (i < todoData.length) {
+      let todoElem = todoData[i];
+      let todoElemDate = datetimeToDate(todoElem.todo_date);
+      if (todoElemDate.getDate() === date) {
+        clickedDateTodo.push(todoElem);
+      }
+      i++;
+    }
+    console.log(clickedDateTodo);
+  }
+  return clickedDateTodo;
+}
 
 /**
  * 투두 항목을 html 요소로 만들어 보여줌
@@ -70,6 +107,12 @@ function addClickedTodo(todoArray) {
 }
 
 //달력 생성 후 서버로부터 해당 월의 투두 목록 받아오는 함수
+/**
+ * 해당 년월의 달력 생성 -> 서버로부터 투두 목록 받아옴 -> 첫번째 날의 cell click
+ * @param {*} year
+ * @param {*} month
+ * @returns
+ */
 async function generateCalendar(year, month) {
   return new Promise(async (resolve, reject) => {
     // 현재 달력 테이블 초기화
@@ -123,7 +166,7 @@ async function generateCalendar(year, month) {
             // 클릭한 날짜의 투두 목록 보여주기
             console.log("clicked event:", clickedYear, clickedMonth, clickedDate);
 
-            // clickedTodoData = getClickedTodoData(clickedYear, clickedMonth, clickedDate);
+            clickedTodoData = getClickedTodoData(clickedYear, clickedMonth, clickedDate);
             // console.log("============== clickedTodoData ===============");
             // console.log(clickedTodoData);
             // addClickedTodo(clickedTodoData);
@@ -199,12 +242,9 @@ function nextMonth() {
 }
 
 // 초기 달력 생성
-var today = new Date();
-var tY = today.getFullYear();
-var tM = today.getMonth();
-const promise = generateCalendar(tY, tM);
+const promise = generateCalendar(todayYear, todayMonth);
 promise.then(() => {
-  // generateCalendar -> getTodoData -> setTodoData 까지 완료된 후 click 발생
+  // generateCalendar -> getTodoData 까지 완료된 후 click 발생
   if (!clicked) {
     // 처음 페이지 로딩때 오늘 날짜에 해당하는 cell을 클릭
     let cell = document.getElementById("cal_" + formatDate(todayYear, todayMonth + 1, todayDate));
@@ -212,7 +252,11 @@ promise.then(() => {
   }
 });
 
-// clickedTodoData array로부터 html요소를 추가
+/**
+ * 하나의 투두 항목을 html 요소로 보여줌
+ * @param {*} todoText
+ * @param {*} todoId
+ */
 function setTodoItem(todoText, todoId) {
   if (todoText !== "") {
     var todoList = document.getElementById("todoList");
