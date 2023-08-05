@@ -15,6 +15,10 @@ req.session
 }
 */
 
+// 세션 가져오기 위한 라우터
+router.get('/main', sess.sessionExist, function (req, res) {
+  res.json(req.session);
+});
 
 // 회원 가입 요청 처리
 router.post('/signup', async (req, res) => {
@@ -29,11 +33,26 @@ router.post('/signup', async (req, res) => {
   let signupResult = await signupController.signup(user);
   if(signupResult.result){ // db에 유저 정보 등록되면 세션에도 회원번호 저장
     req.session.userNum=signupResult.userNum;
+    req.session.userEmail = signupResult.user.email;
   }
   console.log("signupResult:", signupResult);
   response={result: signupResult.result, msg:signupResult.msg, user:signupResult.user};
   res.json(response);
 });
+
+
+// 인증메일 발송 & 이메일인증 페이지 렌더링 -> 사용 안되고 있음
+router.get('/signupAuth', sess.sessionNotExist, (req, res) => {
+  console.log("req.session: ",req.session)
+  if (req.session.userEmail) { // 세션에 이메일이 있는 경우 (정상적인 접근)
+    let msg = req.session.userEmail + " 주소로 인증코드가 전송되었습니다. 인증코드를 제출해 이메일 인증을 완료해주세요."
+    res.json({msg:msg});
+    // res.render('signupAuth', { msg: msg });
+  } else { // 세션에 이메일 없는 경우 (비정상적 접근)
+    res.json({msg:'비정상적 접근입니다.'});
+    // res.render('accessFail', { msg: '비정상적 접근입니다.' })
+  }
+})
 
 // 인증코드 폼 제출 요청 처리
 router.post('/signupAuth', async (req, res) => {
@@ -52,6 +71,7 @@ router.post('/login', async (req, res) => {
   let loginResult = await loginController.login(id, pw);
   if (loginResult.result) { // 로그인 성공
     req.session.userNum = loginResult.userNum;
+    req.session.userName = loginResult.user.name;
     response={result: loginResult.result, msg:loginResult.msg, user:loginResult.user};
     res.json(response);
   }else{

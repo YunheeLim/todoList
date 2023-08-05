@@ -1,9 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import styles from "./SignUpAuth.module.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function SignUpAuth() {
+    const navigate = useNavigate();
+    const [email_msg, setEmail_msg] = useState('');
+
+    useEffect(()=>{
+        getEmail();
+    },[]);
+
+    async function getEmail(){
+        await axios
+            .get('/api/signupAuth')
+            .then((response) => {
+                setEmail_msg(response.data.msg);
+                console.log(email_msg);
+            })
+            .catch((error)=>{
+                console.log(error);
+            })
+    }
+    
+
     const [number, setNumber] = useState(0);
     const [focusing, setFocusing] = useState(false);
     const [error, setError] = useState('');
@@ -44,14 +64,18 @@ export default function SignUpAuth() {
         // 유효성 검사 모두 통과 시
         if (isvalid) {
             // 인증번호 변수 전달
-            const _number = number;
             try {
                 const response = await axios.post('/api/signupAuth', { // 서버로 이메일 인증 요청 전송
-                    number: _number
+                    authCode: number
                 });
 
                 console.log(response.data); // 서버의 응답 출력
-                
+                if(response.data.result){
+                    navigate('/signupResult');
+                }else{
+                    window.alert(response.data.msg);
+                }
+
             } catch (error) {
                 console.error(error);
             }
@@ -67,7 +91,7 @@ export default function SignUpAuth() {
                     </Link>
                     <div className={styles.nav_text}>이메일 인증</div>
                 </div>
-                <div className={styles.confirm_text}>이메일을 전송했습니다. 확인 후 인증번호를 입력해주세요.</div>
+                <div className={styles.confirm_text}>{email_msg}</div>
                 <form onSubmit={handleSubmit} className={styles.confirm}>
                     <input type="text" name="number" onChange={handleChange} onFocus={handleFocus} onBlur={handleBlur} className={focusing ? styles.number_active : styles.number} placeholder="인증번호" />
                     <div className={styles.error_msg}>{error}</div>

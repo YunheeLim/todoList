@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { useState } from 'react';
 import styles from "./SignUp.module.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function SignUp() {
+    const navigate = useNavigate();
 
     // 각 필드값 관리
     const [values, setValues] = useState({
@@ -245,13 +246,11 @@ export default function SignUp() {
                     email: email,
                     password: password
                 });
-
                 console.log(response.data); // 서버의 응답 출력
-                // !!회원가입 성공 시 다음 페이지 어디로 갈지 작성 필요!!
-                if (response.data.result === 'success'){
-                    window.location = "/signupAuth";
-                }else if(response.data.result === 'fail'){
-                    window.alert("이미 사용중인 ID 입니다.");
+                if (response.data.result === true){
+                    navigate('/signupAuth');
+                }else if(response.data.result === false){
+                    window.alert(response.data.msg);
                 }
             } catch (error) {
                 console.error(error);
