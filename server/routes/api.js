@@ -47,4 +47,9 @@ router.get("/main/todo", async (req, res) => {
   res.json(todoData);
 });
 
+router.get("/main/category", async (req, res) => {
+  let catData = await mainController.getCategory(req, res);
+  res.json(catData);
+});
+
 module.exports = router;

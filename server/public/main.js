@@ -1,3 +1,5 @@
+//const { getCategories } = require("../models/todoModel");
+
 var currentYear = null;
 var currentMonth = null;
 
@@ -14,6 +16,7 @@ var todayDate = today.getDate();
 
 var todoData = []; // JSON 배열로, 해당 월 모든 투두 JSON 저장
 var clickedTodoData = new Array(); // 현재 클릭된 일자의 투두 JSON을 저장
+var catData = []; // 카테고리 목록 저장
 
 /**
  * 입력 년월일을 'yyyymmdd' 로 포맷
@@ -66,6 +69,24 @@ async function getTodoData(year, month) {
     let todo_count = document.getElementById("todo_count");
     todo_count.innerText = todoData.length;
     resolve(todoData);
+  });
+}
+
+/**
+ * 서버로부터 카테고리 목록 받아옴 -> catData에 저장
+ * @returns
+ */
+async function getCatData() {
+  return new Promise(async (resolve, reject) => {
+    const response = await fetch("http://localhost:8080/main/category");
+    const jsonData = await response.json();
+    catData = jsonData;
+
+    console.log("======== catData ===========");
+    console.log(catData);
+    console.log(typeof catData);
+
+    resolve(catData);
   });
 }
 
@@ -123,6 +144,8 @@ async function generateCalendar(year, month) {
     var headerRow = document.createElement("tr");
     headerRow.innerHTML = "<th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>";
     calendarTable.appendChild(headerRow);
+
+    let catResult = await getCatData();
 
     // 달력 내용 생성
     var firstDay = new Date(year, month, 1);

@@ -2,7 +2,7 @@ const todoModel = require("../models/todoModel.js");
 const userModel = require("../models/userModel.js");
 
 /**
- * 대상 회원의 해당 년월 투두 목록을 불러옴se
+ * 대상 회원의 해당 년월 투두 목록을 불러옴
  * @param {*} req
  * @param {*} res
  * @returns
@@ -27,4 +27,17 @@ module.exports.getMonthlyTodo = async (req, res) => {
     console.log(getTodoResult);
     return getTodoResult;
   }
+};
+
+/**
+ * 회원이 가진 카테고리 목록 불러옴
+ * @param {*} req
+ * @param {*} res
+ */
+module.exports.getCategory = async (req, res) => {
+  console.log("-- GET category -- from:", req.session.userId);
+  let catResult = await todoModel.getCategories(req.session.userNum);
+  console.log("=============catResult==================");
+  console.log(catResult);
+  return catResult;
 };
