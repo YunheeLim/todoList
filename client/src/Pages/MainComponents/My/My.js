@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import styles from './My.module.css';
 import { BsGear } from 'react-icons/bs';
 import { BsPersonCircle } from "react-icons/bs";
@@ -7,6 +7,24 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function My(){
+
+    const [userName, setUserName] = useState('');
+
+    useEffect(()=>{
+        getUser();
+    },[]);
+
+    async function getUser(){
+        await axios
+            .get('/api/main')
+            .then((response) => {
+                setUserName(response.data.userName);
+            })
+            .catch((error)=>{
+                console.log(error);
+            })
+    }
+
     const navigate = useNavigate();
     const handleClick = () => {
 
@@ -24,7 +42,7 @@ export default function My(){
     return(
         <div className={styles.my_container}>
             <div className={styles.top_bar}>
-                홍길동
+                {userName}
                 <BsGear size="18px" className={styles.gear}></BsGear>
             </div>
             <div className={styles.info}>
