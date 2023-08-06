@@ -5,22 +5,22 @@ import axios from "axios";
 
 
 export default function Profile() {
-    const [userName, setUserName] = useState('');
+    // const [userName, setUserName] = useState('');
 
-    useEffect(()=>{
-        getUser();
-    },[]);
+    // useEffect(()=>{
+    //     getUser();
+    // },[]);
 
-    async function getUser(){
-        await axios
-            .get('/api/main')
-            .then((response) => {
-                setUserName(response.data.userName);
-            })
-            .catch((error)=>{
-                console.log(error);
-            })
-    }
+    // async function getUser(){
+    //     await axios
+    //         .get('/api/main')
+    //         .then((response) => {
+    //             setUserName(response.data.userName);
+    //         })
+    //         .catch((error)=>{
+    //             console.log(error);
+    //         })
+    // }
 
     return(
         <div className={styles.container3}>
@@ -28,7 +28,7 @@ export default function Profile() {
                 <BsPersonCircle size="45px" color="#D8D8D8" />
             </div>
             <div className={styles.profile}>
-                <div className={styles.name}>{userName}</div>
+                <div className={styles.name}>홍길동</div>
                 <div className={styles.self_introduction}>프로필에 자기소개를 입력해보세요</div>
             </div>
         </div>        

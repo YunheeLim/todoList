@@ -8,22 +8,22 @@ import axios from "axios";
 
 export default function My(){
 
-    const [userName, setUserName] = useState('');
+    // const [userName, setUserName] = useState('');
 
-    useEffect(()=>{
-        getUser();
-    },[]);
+    // useEffect(()=>{
+    //     getUser();
+    // },[]);
 
-    async function getUser(){
-        await axios
-            .get('/api/main')
-            .then((response) => {
-                setUserName(response.data.userName);
-            })
-            .catch((error)=>{
-                console.log(error);
-            })
-    }
+    // async function getUser(){
+    //     await axios
+    //         .get('/api/main')
+    //         .then((response) => {
+    //             setUserName(response.data.userName);
+    //         })
+    //         .catch((error)=>{
+    //             console.log(error);
+    //         })
+    // }
 
     const navigate = useNavigate();
     const handleClick = () => {
@@ -42,7 +42,7 @@ export default function My(){
     return(
         <div className={styles.my_container}>
             <div className={styles.top_bar}>
-                {userName}
+                홍길동
                 <BsGear size="18px" className={styles.gear}></BsGear>
             </div>
             <div className={styles.info}>

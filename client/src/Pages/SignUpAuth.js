@@ -5,23 +5,22 @@ import axios from "axios";
 
 export default function SignUpAuth() {
     const navigate = useNavigate();
-    const [email_msg, setEmail_msg] = useState('');
+    // const [email, setEmail] = useState('');
 
-    useEffect(()=>{
-        getEmail();
-    },[]);
+    // useEffect(()=>{
+    //     getEmail();
+    // },[]);
 
-    async function getEmail(){
-        await axios
-            .get('/api/signupAuth')
-            .then((response) => {
-                setEmail_msg(response.data.msg);
-                console.log(email_msg);
-            })
-            .catch((error)=>{
-                console.log(error);
-            })
-    }
+    // async function getEmail(){
+    //     await axios
+    //         .get('/api/signupAuth')
+    //         .then((response) => {
+    //             setEmail(response.data.msg);
+    //         })
+    //         .catch((error)=>{
+    //             console.log(error);
+    //         })
+    // }
     
 
     const [number, setNumber] = useState(0);
@@ -91,7 +90,7 @@ export default function SignUpAuth() {
                     </Link>
                     <div className={styles.nav_text}>이메일 인증</div>
                 </div>
-                <div className={styles.confirm_text}>{email_msg}</div>
+                <div className={styles.confirm_text}>인증코드가 전송되었습니다. 인증코드를 제출해 이메일 인증을 완료해주세요.</div>
                 <form onSubmit={handleSubmit} className={styles.confirm}>
                     <input type="text" name="number" onChange={handleChange} onFocus={handleFocus} onBlur={handleBlur} className={focusing ? styles.number_active : styles.number} placeholder="인증번호" />
                     <div className={styles.error_msg}>{error}</div>
