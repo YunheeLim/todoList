@@ -1,3 +1,11 @@
+.container {
+  display: flex; /* 요소들을 가로로 정렬하기 위해 flex 사용 */
+}
+
+.box {
+  margin-right: 10px; /* 각 box 요소 사이에 오른쪽 여백 추가 */
+}
+
 table {
   border-collapse: collapse;
   width: 100%;
