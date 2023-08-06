@@ -62,6 +62,7 @@ module.exports.signup = async (req, res) => {
   }
   if (emailResult.result) {
     //인증코드 전송 성공
+    req.session.userEmail = user.email;
     req.session.userNum = userNum;
     console.log("req.session.userNum: ", req.session.userNum);
     return {
