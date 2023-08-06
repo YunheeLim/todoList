@@ -2,7 +2,7 @@ const todoModel = require("../models/todoModel.js");
 const userModel = require("../models/userModel.js");
 
 /**
- * 대상 회원의 해당 년월 투두 목록을 불러옴se
+ * 대상 회원의 해당 년월 투두 목록을 불러옴
  * @param {*} req
  * @param {*} res
  * @returns
@@ -27,4 +27,37 @@ module.exports.getMonthlyTodo = async (req, res) => {
     console.log(getTodoResult);
     return getTodoResult;
   }
+};
+
+/**
+ * 회원이 가진 카테고리 목록 불러옴
+ * @param {*} req
+ * @param {*} res
+ */
+module.exports.getCategory = async (req, res) => {
+  console.log("-- GET category -- from:", req.session.userId);
+  let catResult = await todoModel.getCategories(req.session.userNum);
+  console.log("=============catResult==================");
+  console.log(catResult);
+  return catResult;
+};
+
+/**
+ * db에 투두 데이터 추가한 뒤 해당 데이터+카테고리 정보 함께 리턴
+ * @param {*} req
+ * @param {*} res
+ */
+module.exports.insertTodo = async (req, res) => {
+  let userNum = req.session.userNum;
+  if (userNum == undefined) {
+    return { msg: "session expired." };
+  }
+  let catId = req.body.cat_id;
+  let todoCont = req.body.todo_cont;
+  let { year, month, day } = req.body.todo_date;
+  console.log(" -- POST todo -- from user_num: ", userNum, "cat_id: ", catId, " cont: ", todoCont, " date: ", year, month, day);
+  let insertResult = await todoModel.insertTodoData(userNum, catId, todoCont, req.body.todo_date);
+  console.log("=============insertResult==============");
+  console.log(insertResult);
+  return insertResult;
 };

@@ -19,6 +19,10 @@ router.post("/signup", async (req, res) => {
   res.json(signupResult);
 });
 
+router.get("/signupAuth", (req, res) => {
+  res.json({ email: req.session.userEmail });
+});
+
 // 인증코드 폼 제출 요청 처리
 router.post("/signupAuth", async (req, res) => {
   let signupAuthResult = await signupController.signupAuth(req, res);
@@ -42,9 +46,27 @@ router.get("/logout", (req, res) => {
   res.json({ result: true });
 });
 
+router.get("/main", (req, res) => {
+  if (req.session.userId && req.session.userName && req.session.userNum) {
+    res.json({ result: true, userId: req.session.userId, userName: req.session.userName, userNum: req.session.userNum });
+  } else {
+    res.json({ result: false, msg: "유저 정보를 찾을 수 없습니다." });
+  }
+});
+
 router.get("/main/todo", async (req, res) => {
   let todoData = await mainController.getMonthlyTodo(req, res);
   res.json(todoData);
+});
+
+router.get("/main/category", async (req, res) => {
+  let catData = await mainController.getCategory(req, res);
+  res.json(catData);
+});
+
+router.post("/main/todo", async (req, res) => {
+  let insertResult = await mainController.insertTodo(req, res);
+  res.json(insertResult);
 });
 
 module.exports = router;

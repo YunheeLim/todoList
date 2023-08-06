@@ -1,3 +1,5 @@
+//const { getCategories } = require("../models/todoModel");
+
 var currentYear = null;
 var currentMonth = null;
 
@@ -13,7 +15,7 @@ var todayMonth = today.getMonth();
 var todayDate = today.getDate();
 
 var todoData = []; // JSON 배열로, 해당 월 모든 투두 JSON 저장
-var clickedTodoData = new Array(); // 현재 클릭된 일자의 투두 JSON을 저장
+var catData = []; // 카테고리 목록 저장
 
 /**
  * 입력 년월일을 'yyyymmdd' 로 포맷
@@ -57,56 +59,225 @@ async function getTodoData(year, month) {
     var params = { userId: userId, year: year, month: month };
     const response = await fetch("http://localhost:8080/main/todo?" + new URLSearchParams(params));
     const jsonData = await response.json();
-    todoData = jsonData;
+    todoData = jsonData.todo_list;
 
     console.log("======== todoData ===========");
     console.log(todoData);
-    console.log(typeof todoData);
 
     let todo_count = document.getElementById("todo_count");
-    todo_count.innerText = todoData.length;
+    todo_count.innerText = jsonData.todo_count;
     resolve(todoData);
   });
 }
 
 /**
- * todoData 중에서 클릭된 날의 투두 데이터만 찾아 리턴
+ * 서버로부터 카테고리 목록 받아옴 -> catData에 저장
+ * @returns
+ */
+async function getCatData() {
+  return new Promise(async (resolve, reject) => {
+    const response = await fetch("http://localhost:8080/main/category");
+    const jsonData = await response.json();
+    catData = jsonData;
+
+    console.log("======== catData ===========");
+    console.log(catData);
+
+    resolve(catData);
+  });
+}
+
+/**
+ * todo 추가 요청: todoCont,catId,todo_date를 서버에 post 제출 후, 추가한 투두를 todoData에도 업데이트
+ * @param {*} todoCont
+ * @param {*} catId
+ * @returns
+ */
+async function postTodoData(todoCont, catId, year, month, day) {
+  data = { cat_id: catId, todo_cont: todoCont, todo_date: { year: year, month: month, day: day } };
+  const response = await fetch("http://localhost:8080/main/todo", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  const jsonData = await response.json();
+  return jsonData;
+}
+
+/**
+ * 투두 항목 하나를 todoData array에 추가
+ * @param {*} todoJSON
+ */
+function addTodoData(todoJSON) {
+  // todoJSON의 date를 숫자형으로 저장
+  let year = Number(todoJSON.todo_date.slice(0, 4));
+  let month = Number(todoJSON.todo_date.slice(5, 7));
+  let day = Number(todoJSON.todo_date.slice(8, 10));
+  console.log("addTodoData year, month, day: ", year, month, day);
+
+  // todoData에 todoJSON 하나 추가
+  const dayIdx = todoData.findIndex((todoItem) => todoItem.year === year && todoItem.month === month && todoItem.day === day);
+  if (dayIdx != -1) {
+    // todoData에 해당 날짜 JSON 이미 존재함 -> 해당 카테고리 존재하는지 확인
+    const catIdx = todoData[dayIdx].categorys.findIndex((catItem) => catItem.cat_id === todoJSON.cat_id);
+    if (catIdx != -1) {
+      // 해당 날짜의 해당 카테고리 JSON 이미 존재함 -> todo 데이터 넣기
+      todoData[dayIdx].categorys[catIdx].todos.push(todoJSON);
+    } else {
+      // 해당 날짜는 존재하지만 카테고리는 존재하지 않음 -> 카테고리 정보와 함께 todo  데이터 넣기
+      todoData[dayIdx].categorys.push({ cat_id: todoJSON.cat_id, cat_title: todoJSON.cat_title, todos: [todoJSON] });
+    }
+  } else {
+    // todoResult에 해당 날짜 JSON 존재하지 않음 -> 날짜 정보, 카테고리 정보와 함께 todo 데이터 넣기
+    todoData.push({ year: year, month: month, day: day, categorys: [{ cat_id: todoJSON.cat_id, cat_title: todoJSON.cat_title, todos: [todoJSON] }] });
+  }
+
+  // 투두 하나 추가했으므로 todo_count 값 증가
+  let todo_count = document.getElementById("todo_count");
+  todo_count.innerText = Number(todo_count.innerText) + 1;
+}
+
+/**
+ * 클릭된 일자의 카테고리 및 투두 항목들을 보여줌
  * @param {*} year
  * @param {*} month
  * @param {*} date
  */
-function getClickedTodoData(year, month, date) {
-  let clickedDateTodo = [];
-  if (todoData.length) {
-    // 해당 월의 투두 데이터 있는 경우에만
-    let i = 0;
-    while (i < todoData.length) {
-      let todoElem = todoData[i];
-      let todoElemDate = datetimeToDate(todoElem.todo_date);
-      if (todoElemDate.getDate() === date) {
-        clickedDateTodo.push(todoElem);
-      }
-      i++;
+async function displayClickedTodoData(year, month, day) {
+  return new Promise((resolve, reject) => {
+    var todoList = document.getElementById("todoList");
+    todoList.innerHTML = "";
+    console.log("== todoList Area Initialized ==");
+
+    //  카테고리 html 요소 생성
+    catData.forEach((catItem) => {
+      setCatItem(catItem.cat_id, catItem.cat_title);
+    });
+
+    // 각 카테고리별 투두 html 요소 생성
+    const dayIdx = todoData.findIndex((todoItem) => todoItem.year === year && todoItem.month === month && todoItem.day === day);
+    if (dayIdx != -1) {
+      let clickedData = todoData[dayIdx].categorys;
+      clickedData.forEach((catItem) => {
+        setTodoItem(catItem.cat_id, catItem.todos);
+      });
     }
-    console.log(clickedDateTodo);
-  }
-  return clickedDateTodo;
+    resolve(true);
+  });
 }
 
 /**
- * 투두 항목을 html 요소로 만들어 보여줌
- * @param {*} todoArray
+ * catId,catTitle 정보로 카테고리 html 요소 생성
+ * @param {*} catId
+ * @param {*} catTitle
  */
-function addClickedTodo(todoArray) {
+function setCatItem(catId, catTitle) {
   var todoList = document.getElementById("todoList");
-  todoList.innerHTML = "";
 
-  for (i = 0; i < todoArray.length; i++) {
-    setTodoItem(todoArray[i].todo_cont, todoArray[i].todo_id);
+  var newItem = document.createElement("div");
+  newItem.className = "cat-item";
+  newItem.id = "cat_" + catId;
+
+  var label = document.createElement("label");
+  label.textContent = catTitle;
+  var addBtn = document.createElement("span");
+  addBtn.className = "cat_addBtn";
+  addBtn.textContent = "+";
+
+  // category 옆의 + 버튼 누르면 새로운 투두 입력할 수 있는 폼 보여줌
+  addBtn.addEventListener("click", () => {
+    displayAddTodoForm(catId);
+  });
+
+  newItem.appendChild(label);
+  newItem.appendChild(addBtn);
+  todoList.appendChild(newItem);
+}
+
+/**
+ *  해당 날짜의 해당 카테고리에 투두 추가하는 폼 보여주기
+ * @param {*} catId
+ */
+function displayAddTodoForm(catId) {
+  var catDiv = document.getElementById("cat_" + catId);
+  var addTodoFormElem = document.getElementById("addTodoForm");
+  if (addTodoFormElem) {
+    // 폼이 이미 있는 경우 -> 폼 요소 삭제
+    catDiv.removeChild(addTodoFormElem);
+  } else {
+    // 폼 없는 경우 ->  폼 요소 생성
+    const form = document.createElement("form");
+    form.className = "add-todo-form";
+    form.id = "addTodoForm";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = "todoContInput";
+    input.placeholder = "할 일 입력";
+
+    const button = document.createElement("button");
+    button.type = "submit";
+    button.textContent = "추가";
+
+    form.appendChild(input);
+    form.appendChild(button);
+
+    // 투두 추가 폼 제출 버튼 eventlistener : 서버에 post 요청
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      var todoInput = document.getElementById("todoContInput");
+      var todoText = todoInput.value.trim();
+      console.log("todo submit Date:", clickedYear, clickedMonth, clickedDate, " todoText:", todoText);
+      if (todoText) {
+        // 투두 항목 추가 api 호출
+        let insertedTodo = await postTodoData(todoText, catId, clickedYear, clickedMonth, clickedDate);
+        catDiv.removeChild(form);
+        console.log("=== result of postTodoData ===");
+        console.log(insertedTodo);
+        addTodoData(insertedTodo);
+        await displayClickedTodoData(clickedYear, clickedMonth, clickedDate);
+      }
+    });
+
+    catDiv.appendChild(form);
   }
 }
 
-//달력 생성 후 서버로부터 해당 월의 투두 목록 받아오는 함수
+/**
+ * 주어진 cat_id의 하위 요소로 주어진 todos array의 투두 항목 각각의 html 요소 생성
+ * @param {*} catId
+ * @param {*} todos
+ */
+function setTodoItem(catId, todos) {
+  var catDiv = document.getElementById("cat_" + catId);
+  todos.forEach((todoItem) => {
+    var newItem = document.createElement("div");
+    newItem.className = "todo-item";
+    newItem.id = "todo_" + todoItem.todo_id;
+
+    var label = document.createElement("label");
+    label.textContent = todoItem.todo_cont;
+
+    var checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+
+    var deleteBtn = document.createElement("span");
+    deleteBtn.className = "todo_deleteBtn";
+    deleteBtn.textContent = "X";
+
+    deleteBtn.addEventListener("click", () => {
+      deleteTodoItem(newItem);
+    });
+
+    newItem.appendChild(label);
+    newItem.appendChild(checkbox);
+    newItem.appendChild(deleteBtn);
+    catDiv.appendChild(newItem);
+  });
+}
+
 /**
  * 해당 년월의 달력 생성 -> 서버로부터 투두 목록 받아옴 -> 첫번째 날의 cell click
  * @param {*} year
@@ -123,6 +294,8 @@ async function generateCalendar(year, month) {
     var headerRow = document.createElement("tr");
     headerRow.innerHTML = "<th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>";
     calendarTable.appendChild(headerRow);
+
+    let catResult = await getCatData();
 
     // 달력 내용 생성
     var firstDay = new Date(year, month, 1);
@@ -146,7 +319,7 @@ async function generateCalendar(year, month) {
           cell.className = "unclicked";
 
           // 날짜 셀에 클릭 이벤트 추가
-          cell.onclick = function () {
+          cell.onclick = async function () {
             // 전에 클릭된 cell의 class 변경
             clickedCell = document.getElementsByClassName("clicked");
             for (var i = 0; i < clickedCell.length; i++) {
@@ -165,19 +338,8 @@ async function generateCalendar(year, month) {
 
             // 클릭한 날짜의 투두 목록 보여주기
             console.log("clicked event:", clickedYear, clickedMonth, clickedDate);
-
-            clickedTodoData = getClickedTodoData(clickedYear, clickedMonth, clickedDate);
-            // console.log("============== clickedTodoData ===============");
-            // console.log(clickedTodoData);
-            // addClickedTodo(clickedTodoData);
+            clickedTodoData = await displayClickedTodoData(clickedYear, clickedMonth, clickedDate);
           };
-
-          // if (clicked) {
-          //   // 클릭된 cell이 현재 그리려는 cell과 일치하는 경우 clicked class 부여
-          //   if (year === clickedYear && month + 1 === clickedMonth && date === clickedDate) {
-          //     cell.className = "clicked";
-          //   }
-          // }
           row.appendChild(cell);
           date++;
         }
@@ -252,39 +414,6 @@ promise.then(() => {
   }
 });
 
-/**
- * 하나의 투두 항목을 html 요소로 보여줌
- * @param {*} todoText
- * @param {*} todoId
- */
-function setTodoItem(todoText, todoId) {
-  if (todoText !== "") {
-    var todoList = document.getElementById("todoList");
-
-    // 새로운 항목을 생성하여 todoList에 추가
-    var newItem = document.createElement("div");
-    newItem.className = "todo-item";
-    newItem.id = "todo_" + todoId;
-
-    var checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    var label = document.createElement("label");
-    label.textContent = todoText;
-    var deleteButton = document.createElement("span");
-    deleteButton.className = "delete-button";
-    deleteButton.textContent = "X";
-
-    deleteButton.addEventListener("click", function () {
-      deleteTodoItem(newItem);
-    });
-
-    newItem.appendChild(checkbox);
-    newItem.appendChild(label);
-    newItem.appendChild(deleteButton);
-    todoList.appendChild(newItem);
-  }
-}
-
 // 투두리스트 항목 추가를 처리하는 함수
 function addTodoItem() {
   var todoInput = document.getElementById("todoInput");
@@ -323,32 +452,3 @@ function deleteTodoItem(item) {
   var todoList = document.getElementById("todoList");
   todoList.removeChild(item);
 }
-
-async function postTodoData(data) {
-  const response = await fetch("http://localhost:8080/main/todo", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-  return response.json();
-}
-
-// 폼 제출 이벤트 처리
-document.getElementById("addForm").addEventListener(
-  "submit",
-  async function (e) {
-    console.log("ClickedCell Date:", clickedYear, clickedMonth, clickedDate);
-    e.preventDefault();
-    var todoInput = document.getElementById("todoInput");
-    var todoText = todoInput.value.trim();
-    console.log("todoTExt:", todoText);
-    // 투두 항목 추가 api 호출
-    postTodoData({ todo_cont: todoText }).then((response) => {
-      console.log("postTodoData res: ", response);
-      addTodoItem();
-    });
-  },
-  false
-);

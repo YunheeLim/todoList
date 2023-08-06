@@ -118,9 +118,14 @@ router.get("/main/todo", async (req, res) => {
   res.json(todoData);
 });
 
+router.get("/main/category", async (req, res) => {
+  let catData = await mainController.getCategory(req, res);
+  res.json(catData);
+});
+
 router.post("/main/todo", async (req, res) => {
-  console.log("req.session.userNum: ", req.session.userNum, "req.body: ", req.body.todo_cont);
-  res.json({ result: true });
+  let insertResult = await mainController.insertTodo(req, res);
+  res.json(insertResult);
 });
 
 module.exports = router;

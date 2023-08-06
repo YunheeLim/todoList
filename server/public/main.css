@@ -42,12 +42,24 @@ td.clicked {
   margin-bottom: 10px;
 }
 
-.todo-item .delete-button {
+.todo-item .todo_deleteBtn {
   cursor: pointer;
   color: red;
   margin-left: 10px;
 }
 
+.cat-item > label {
+  font-weight: 700;
+}
+.cat-item > span {
+  font-weight: 700;
+}
+
+.cat-item .cat_addBtn {
+  cursor: pointer;
+  color: red;
+  margin-left: 10px;
+}
 
 /* .todo-item input[type="checkbox"] {
   display: none;
