@@ -12,6 +12,8 @@ module.exports.getMonthTodo = async (userNum, year, month) => {
 
   let sqlResult = await db.Query(sql, [userNum, year, month]);
 
+  let todoJSON = {};
+  todoJSON.todo_count = sqlResult.length;
   let todoResult = [];
   sqlResult.forEach((item) => {
     year = item.todo_date.getFullYear();
@@ -34,7 +36,8 @@ module.exports.getMonthTodo = async (userNum, year, month) => {
       todoResult.push({ year: year, month: month, day: day, categorys: [{ cat_id: item.cat_id, cat_title: item.cat_title, todos: [item] }] });
     }
   });
-  return todoResult;
+  todoJSON.todo_list = todoResult;
+  return todoJSON;
 };
 
 /**
@@ -46,4 +49,26 @@ module.exports.getCategories = async (userNum) => {
   let sql = "SELECT cat_id,cat_title,cat_access,user_num FROM Category WHERE user_num=?;";
   let catResult = await db.Query(sql, [userNum]);
   return catResult;
+};
+
+/**
+ * todo table에 데이터 insert
+ * @param {*} userNum
+ * @param {*} catId
+ * @param {*} todoCont
+ * @param {*} todoDate
+ * @returns
+ */
+module.exports.insertTodoData = async (userNum, catId, todoCont, todoDate) => {
+  let dateString = todoDate.year + ("0" + todoDate.month).slice(-2) + ("0" + todoDate.day).slice(-2) + "120000";
+  let sql = "INSERT INTO todo SET?";
+  // 투두 데이터 insert
+  let insertResult = await db.Query(sql, { user_num: userNum, cat_id: catId, todo_date: dateString, todo_cont: todoCont });
+
+  let insertedTodoId = insertResult["insertId"]; // insert query의 리턴값에서 todo_id 저장
+  sql =
+    "SELECT t.todo_id, t.user_num, c.cat_id,c.cat_title, t.todo_date, t.todo_cont, t.todo_time, t.todo_checked FROM todo as t, category as c WHERE t.cat_id=c.cat_id AND t.todo_id=?;";
+  // 방금 insert한 투두+카테고리의 데이터 리턴
+  let insertedTodo = await db.Query(sql, [insertedTodoId]);
+  return insertedTodo[0];
 };

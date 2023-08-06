@@ -124,8 +124,8 @@ router.get("/main/category", async (req, res) => {
 });
 
 router.post("/main/todo", async (req, res) => {
-  console.log("req.session.userNum: ", req.session.userNum, "req.body: ", req.body.todo_cont);
-  res.json({ result: true });
+  let insertResult = await mainController.insertTodo(req, res);
+  res.json(insertResult);
 });
 
 module.exports = router;

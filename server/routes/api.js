@@ -52,4 +52,9 @@ router.get("/main/category", async (req, res) => {
   res.json(catData);
 });
 
+router.post("/main/todo", async (req, res) => {
+  let insertResult = await mainController.insertTodo(req, res);
+  res.json(insertResult);
+});
+
 module.exports = router;
