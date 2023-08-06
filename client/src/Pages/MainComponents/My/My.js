@@ -1,20 +1,41 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import styles from './My.module.css';
 import { BsGear } from 'react-icons/bs';
 import { BsPersonCircle } from "react-icons/bs";
 import { GiHistogram } from 'react-icons/gi';
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function My(){
+
+    // const [userName, setUserName] = useState('');
+
+    // useEffect(()=>{
+    //     getUser();
+    // },[]);
+
+    // async function getUser(){
+    //     await axios
+    //         .get('/api/main')
+    //         .then((response) => {
+    //             setUserName(response.data.userName);
+    //         })
+    //         .catch((error)=>{
+    //             console.log(error);
+    //         })
+    // }
+
+    const navigate = useNavigate();
     const handleClick = () => {
-        try {
-            const response = axios.get('/api/logout');
-            // todo: response.data.success 받기
-            window.location = "/First";
-        } catch (error) {
-            console.error(error);
-        }
+
+        axios.get('/api/logout')
+        .then(res => {
+            console.log(res.data);
+            if(res.data.result){
+                navigate('/first');
+            }
+        })
+        .catch(err => console.log(err))
         
     }
 

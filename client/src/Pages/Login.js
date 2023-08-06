@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import styles from "./Login.module.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function Login(){
+    const navigate = useNavigate();
 
     // 각 필드값 관리
     // const [id, setId] = useState("");
@@ -98,9 +99,9 @@ export default function Login(){
                 });
 
                 console.log(response.data); // 서버의 응답 출력
-                if (response.data.result === 'success'){
-                    window.location = "/main";
-                } else if (response.data.result === 'fail'){
+                if (response.data.result){
+                    navigate('/main');
+                } else{
                     window.alert(response.data.msg);
                 }
                 

@@ -1,8 +1,27 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { BsPersonCircle } from "react-icons/bs";
 import styles from './Profile.module.css';
+import axios from "axios";
+
 
 export default function Profile() {
+    // const [userName, setUserName] = useState('');
+
+    // useEffect(()=>{
+    //     getUser();
+    // },[]);
+
+    // async function getUser(){
+    //     await axios
+    //         .get('/api/main')
+    //         .then((response) => {
+    //             setUserName(response.data.userName);
+    //         })
+    //         .catch((error)=>{
+    //             console.log(error);
+    //         })
+    // }
+
     return(
         <div className={styles.container3}>
             <div className={styles.self_image}>
