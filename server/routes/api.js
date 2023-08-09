@@ -69,4 +69,10 @@ router.post("/main/todo", async (req, res) => {
   res.json(insertResult);
 });
 
+// todo check / uncheck 요청 처리
+router.post("/main/todo/check", async (req, res) => {
+  let checkResult = await mainController.checkTodo(req, res);
+  res.json(checkResult);
+});
+
 module.exports = router;

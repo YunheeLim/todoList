@@ -118,14 +118,22 @@ router.get("/main/todo", async (req, res) => {
   res.json(todoData);
 });
 
+// 카테고리 목록 get 요청 처리
 router.get("/main/category", async (req, res) => {
   let catData = await mainController.getCategory(req, res);
   res.json(catData);
 });
 
+// todo 추가 요청 처리
 router.post("/main/todo", async (req, res) => {
   let insertResult = await mainController.insertTodo(req, res);
   res.json(insertResult);
+});
+
+// todo check / uncheck 요청 처리
+router.post("/main/todo/check", async (req, res) => {
+  let checkResult = await mainController.checkTodo(req, res);
+  res.json(checkResult);
 });
 
 module.exports = router;
