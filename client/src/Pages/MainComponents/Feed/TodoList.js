@@ -1,10 +1,11 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { TodoStateContext, TodoNextIdContext, TodoDispatchContext } from '../TodoContext';
+import { TodoStateContext, TodoNextIdContext, TodoDispatchContext, TodoDateContext } from '../TodoContext';
 import { BsCheckCircleFill, BsCircle } from 'react-icons/bs';
 import { AiFillPlusCircle } from 'react-icons/ai';
 import styles from './TodoList.module.css';
+import axios from "axios";
 
-const TodoHead = () => {
+const TodoHead = ({cat_title}) => {
     const todos = useContext(TodoStateContext);
     const dispatch = useContext(TodoDispatchContext);
     const nextId = useContext(TodoNextIdContext);
@@ -49,7 +50,7 @@ const TodoHead = () => {
 
     return (
         <div>
-            <div className={styles.todoCreate}>할 일 {undoneTasks.length}개 남음
+            <div className={styles.todoCreate}>{cat_title}
                 <div className={styles.create_icon} onClick={makeForm}>
                     <AiFillPlusCircle size="22px"></AiFillPlusCircle>
                 </div>
@@ -95,13 +96,110 @@ const TodoItem = ({ id, done, text }) => {
     );
 }
 
-export default function TodoList() {
-    const todos = useContext(TodoStateContext);
+const TodoItemNew = ({ id, done, text }) => {
 
-    console.log(todos);
+    let icon = null;
+
+    if (done === true) {
+        icon = <BsCheckCircleFill size="19px" ></BsCheckCircleFill>
+    } else if (done === false) {
+        icon = <BsCircle size="19px" color="#BDBDBD" ></BsCircle>
+    }
+
+    return (
+        <div className={styles.todoItem_container}>
+            <div className={styles.checkBox}>
+                {icon}
+            </div>
+            <div className={styles.text}>
+                {text}
+            </div>
+            <div className={styles.delete}>
+                삭제
+            </div>
+        </div>
+    );
+}
+
+
+export default function TodoList({_userId}) {
+    const [categories, setCategories] = useState([]);
+    const [info, setInfo] = useState([]);
+    const [date, setDate] = useState({});
+
+    const todos = useContext(TodoStateContext);
+    // console.log(todos);
+    const _date = useContext(TodoDateContext);
+
+    useEffect(()=>{
+        getCategories();
+        getInfo();
+        setDate(_date.current);
+        console.log('date check: ', date);
+    }, []);
+
+    // console.log(info);
+
+    async function getCategories(){
+        await axios
+            .get('/api/main/category')
+            .then((response) => {
+                setCategories(response.data);
+
+            })
+            .catch((error)=>{
+                console.log(error);
+            })
+    }
+
+    async function getInfo(){
+        await axios
+            // 미완성: userId 동적 정보로 변환
+            .get('/api/main/todo?userId=aaaaa&year=2023&month=8')
+            .then((response) => {
+                setInfo(response.data);
+            })
+            .catch((error)=>{
+                console.log(error);
+            })     
+    }
+
+    const rendering_categories = () => {
+        const result_categories = [];
+
+        for(let i = 0; i < categories.length; i++){
+            result_categories.push(<TodoHead
+                key={categories[i].cat_id}
+                cat_title={categories[i].cat_title}
+                />);
+
+            for(let j = 0; j < info.todo_count; j++){
+                if(info.todo_list[0].categorys[j].cat_id === categories[i].cat_id){
+                    for(let k = 0 ; k < info.todo_list[0].categorys[j].todos.length; k++){
+                        result_categories.push(<TodoItemNew 
+                            key={info.todo_list[0].categorys[j].todos[k].todo_id}
+                            id={info.todo_list[0].categorys[j].todos[k].todo_id}
+                            text={info.todo_list[0].categorys[j].todos[k].todo_cont}
+                            done={false}
+                        />);
+                    }
+                    
+                }
+            }
+        }
+        return result_categories;
+    }
+
+    
     return (
         <div>
-            <TodoHead></TodoHead>
+            {rendering_categories()}
+            {/* {categories && categories.map(category => (
+                <TodoHead
+                    key={category.cat_id}
+                    cat_title={category.cat_title}
+                />
+            ))} */}
             {todos && todos.map(todo => (
                 <TodoItem
                     key={todo.id}

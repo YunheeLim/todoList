@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { TodoDateContext, TodoDispatchContext } from '../TodoContext';
 import { format, addMonths, subMonths } from 'date-fns';
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns';
 import { isSameMonth, isSameDay, addDays, parse } from 'date-fns';
@@ -91,6 +92,9 @@ const RenderCells = ({ currentMonth, selectedDate, onDateClick }) => {
 
 
 export default function Calendar() {
+    let getDate = useContext(TodoDateContext);
+    const dispatch = useContext(TodoDispatchContext);
+
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -102,6 +106,12 @@ export default function Calendar() {
     }
     const onDateClick = (day) => {
         setSelectedDate(day);
+        getDate.current = {
+            year: format(day, 'Y'),
+            month: format(day, 'M'),
+            day: format(day, 'd')
+        }
+        console.log('getDate: ', getDate.current);
     }
 
     return (

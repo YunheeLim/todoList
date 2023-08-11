@@ -4,23 +4,9 @@ import styles from './Profile.module.css';
 import axios from "axios";
 
 
-export default function Profile() {
-    const [userName, setUserName] = useState('');
-
-    useEffect(()=>{
-        getUser();
-    },[]);
-
-    async function getUser(){
-        await axios
-            .get('/api/main')
-            .then((response) => {
-                setUserName(response.data.userName);
-            })
-            .catch((error)=>{
-                console.log(error);
-            })
-    }
+export default function Profile({userName}) {
+    // const [userName, setUserName] = useState('');
+    // setUserName(userName);
 
     return(
         <div className={styles.container3}>
