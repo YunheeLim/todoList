@@ -39,15 +39,6 @@ function todoReducer(state, action) {
     }
 }
 
-// function todoReducer2(date, action) {
-//     switch (action.type) {
-//         case 'SELECT': // 날짜 선택
-//             return date;
-//         default:
-//             throw new Error(`Unhandled action type: ${action.type}`);
-//     }
-// }
-
 export const TodoStateContext = createContext();
 export const TodoDispatchContext = createContext();
 export const TodoNextIdContext = createContext();
@@ -55,17 +46,13 @@ export const TodoDateContext = createContext();
 
 export function TodoProvider({ children }) {
     const [state, dispatch] = useReducer(todoReducer, initialTodos);
-    // const [date, dispatch] = useReducer(todoReducer2, initialTodos);
-    const date = useRef('');
     const nextId = useRef(state.length);
 
     return (
         <TodoStateContext.Provider value={state}>
             <TodoDispatchContext.Provider value={dispatch}>
                 <TodoNextIdContext.Provider value={nextId}>
-                    <TodoDateContext.Provider value={date}>
                         {children}
-                    </TodoDateContext.Provider>
                 </TodoNextIdContext.Provider>
             </TodoDispatchContext.Provider>
         </TodoStateContext.Provider>
