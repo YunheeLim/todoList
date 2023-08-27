@@ -106,10 +106,10 @@ export default function Calendar() {
 
     }, [selectedDate]);
 
-    useEffect(()=>{
-        console.log('print date: ', date);
+    // useEffect(()=>{
+    //     console.log('print date: ', date);
 
-    }, [date]);
+    // }, [date]);
 
 
     const prevMonth = () => {

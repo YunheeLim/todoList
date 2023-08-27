@@ -24,8 +24,16 @@ const initialTodos = [
     // }
 ];
 
+
 function todoReducer(state, action) {
+    let exist = false;
+
     switch (action.type) {
+        case 'CLEAR': // 할 일 초기화
+            state = [];
+            return state;
+        case 'RENDER': // 할 일 렌더링
+            return state.concat(action.todo);
         case 'CREATE': // 할 일 항목 추가
             return state.concat(action.todo);
         case 'TOGGLE': // 할 일 완료 체크/해제

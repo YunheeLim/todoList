@@ -7,10 +7,13 @@ import { AiFillPlusCircle } from 'react-icons/ai';
 import styles from './TodoList.module.css';
 import axios from "axios";
 
-const TodoHead = ({ cat_title }) => {
+// 할 일 생성
+const TodoHead = ({ cat_title, cat_id }) => {
     const todos = useContext(TodoStateContext);
     const dispatch = useContext(TodoDispatchContext);
-    const nextId = useContext(TodoNextIdContext);
+    const nextId = useContext(TodoNextIdContext)
+    const date = useContext(DateStateContext);
+
     const undoneTasks = todos.filter(todo => !todo.done);
     const [input_text, SetInput_text] = useState('');
     const [isFormed, SetIsFormed] = useState(false);
@@ -19,17 +22,42 @@ const TodoHead = ({ cat_title }) => {
     const TodoCreate = (e) => {
         e.preventDefault();
 
-        dispatch({
-            type: 'CREATE',
-            todo: {
-                id: nextId.current,
-                text: input_text,
-                done: false
-            }
-        });
-        nextId.current += 1;
-        SetInput_text('');
-        SetIsFormed(false)
+        if (input_text === "") { // 입력이 공백인 경우
+            SetIsFormed(false)
+        }else { // 입력값이 있는 경우
+            dispatch({
+                type: 'CREATE',
+                todo: {
+                    id: nextId.current,
+                    cat_id: cat_id,
+                    text: input_text,
+                    done: false
+                }
+            });
+
+            axios.post('/api/main/todo', {
+                cat_id: cat_id,
+                todo_cont: input_text,
+                todo_date: {
+                    year: format(date, 'yyyy'),
+                    month: format(date, 'M'),
+                    day: format(date, 'd')
+                }
+            })
+                .then((response) => {
+                    console.log(response.data);
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+
+
+            nextId.current += 1;
+            SetInput_text('');
+            SetIsFormed(false)
+        }
+
+
     }
 
     const handleChange = (e) => {
@@ -62,6 +90,7 @@ const TodoHead = ({ cat_title }) => {
     );
 }
 
+/*
 const TodoItem = ({ id, done, text }) => {
     const todos = useContext(TodoStateContext);
     const dispatch = useContext(TodoDispatchContext);
@@ -70,8 +99,7 @@ const TodoItem = ({ id, done, text }) => {
     const onToggle = () => dispatch({ type: 'TOGGLE', id });
     const onRemove = () => {
         dispatch({ type: 'REMOVE', id });
-        // todo: 삭제 후 뒷 아이템들 id 하나씩 당기기
-        // console.log(todos);
+
         nextId.current -= 1;
     }
 
@@ -97,15 +125,36 @@ const TodoItem = ({ id, done, text }) => {
         </div>
     );
 }
+*/
 
+// 할 일 항목 형태 정의
 const TodoItemNew = ({ id, done, text }) => {
+    const date = useContext(DateStateContext);
+    const dispatch = useContext(TodoDispatchContext);
 
     let icon = null;
 
+    // 할 일 완료/해제
+    const onToggle = () => {
+        dispatch({ type: 'TOGGLE', id })
+        // axios.post('/api/main/todo/check',{
+        //     checked:done, 
+        //     todo_id:id, 
+        //     todo_date:{
+        //         year: format(date, 'yyyy'),
+        //         month: format(date, 'M')}
+        // });
+    };
+
     if (done === true) {
-        icon = <BsCheckCircleFill size="19px" ></BsCheckCircleFill>
+        icon = <BsCheckCircleFill size="19px" onClick={onToggle}></BsCheckCircleFill>
     } else if (done === false) {
-        icon = <BsCircle size="19px" color="#BDBDBD" ></BsCircle>
+        icon = <BsCircle size="19px" color="#BDBDBD" onClick={onToggle}></BsCircle>
+    }
+
+    // 할 일 삭제
+    const onRemove = () => {
+        dispatch({ type: 'REMOVE', id });
     }
 
     return (
@@ -116,7 +165,7 @@ const TodoItemNew = ({ id, done, text }) => {
             <div className={styles.text}>
                 {text}
             </div>
-            <div className={styles.delete}>
+            <div className={styles.delete} onClick={onRemove}>
                 삭제
             </div>
         </div>
@@ -124,23 +173,30 @@ const TodoItemNew = ({ id, done, text }) => {
 }
 
 
-export default function TodoList({ _userId }) {
+export default function TodoList({}) {
     const [categories, setCategories] = useState([]);
     const [info, setInfo] = useState('');
 
-    const todos = useContext(TodoStateContext);
+    const todoState = useContext(TodoStateContext);
+    const dispatch = useContext(TodoDispatchContext);
     const date = useContext(DateStateContext);
 
-    console.log('date in todolist component: ', date);
+    console.log('[todoState]', todoState);
 
     useEffect(() => {
         getCategories();
         getInfo();
-    }, []);
+    }, [todoState]);
 
     useEffect(() => {
-        rendering_categories();
+        dispatch({
+            type: 'CLEAR',
+
+        });
+        add_to_state();
+        rendering();
     }, [date]);
+
 
     async function getCategories() {
         await axios
@@ -154,9 +210,22 @@ export default function TodoList({ _userId }) {
     }
 
     async function getInfo() {
+        let userId = '';
+        // let year = parseInt(format(date, 'yyyy'));
+        // let month = parseInt(format(date, 'M'));
+
         await axios
-            // 미완성: userId 동적 정보로 변환
-            .get('/api/main/todo?userId=aaaaa&year=2023&month=8')
+            .get('/api/main')
+            .then((response) => {
+                userId = response.data.userId;
+            })
+            .catch((error)=>{
+                console.log(error);
+            })
+
+        await axios
+            // 미완성: 날짜 동적으로 바꾸기
+            .get(`/api/main/todo?userId=${userId}&year=2023&month=8`)
             .then((response) => {
                 setInfo(response.data);
             })
@@ -165,27 +234,25 @@ export default function TodoList({ _userId }) {
             })
     }
 
-    const rendering_categories = () => {
-        const result_categories = [];
+    const add_to_state = () => {
 
         if (info !== '') {
             for (let i = 0; i < categories.length; i++) {
-                result_categories.push(<TodoHead
-                    key={categories[i].cat_id}
-                    cat_title={categories[i].cat_title}
-                />);
                 (info.todo_list).forEach(todo_list_obj => {
                     if (todo_list_obj.year == format(date, 'yyyy') && todo_list_obj.month == format(date, 'M') && todo_list_obj.day == format(date, 'd')) {
 
                         (todo_list_obj.categorys).forEach(categorys_obj => {
                             if (categorys_obj.cat_id === categories[i].cat_id) {
                                 categorys_obj.todos.forEach(todos => {
-                                    result_categories.push(<TodoItemNew
-                                        key={todos.todo_id}
-                                        id={todos.todo_id}
-                                        text={todos.todo_cont}
-                                        done={false}
-                                    />);
+                                    dispatch({
+                                        type: 'RENDER',
+                                        todo: {
+                                            id: todos.todo_id,
+                                            cat_id: categories[i].cat_id,
+                                            text: todos.todo_cont,
+                                            done: ((todos.todo_checked === 0) ? false : true)
+                                        }
+                                    });
                                 })
                             }
                         });
@@ -195,28 +262,50 @@ export default function TodoList({ _userId }) {
                 );
             }
         }
-        return result_categories;
     }
 
 
+    const rendering = () => {
+        const result = [];
+        categories.forEach(category => {
+            const category_box = [];
+            category_box.push(<TodoHead
+                key={category.cat_id}
+                cat_id={category.cat_id}
+                cat_title={category.cat_title}
+            />)
+            todoState.forEach(todo => {
+                if (todo.cat_id === category.cat_id) {
+                    category_box.push(<TodoItemNew
+                        key={todo.id}
+                        id={todo.id}
+                        text={todo.text}
+                        done={todo.done}
+                    />)
+                }
+            })
+            result.push(category_box);
+        })
+        return result;
+    }
 
     return (
         <div>
-            {rendering_categories()}
+            {rendering()}
             {/* {categories && categories.map(category => (
                 <TodoHead
                     key={category.cat_id}
                     cat_title={category.cat_title}
                 />
-            ))} */}
-            {todos && todos.map(todo => (
-                <TodoItem
+            ))} 
+            {todoState && todoState.map(todo => (
+                <TodoItemNew
                     key={todo.id}
                     id={todo.id}
                     text={todo.text}
                     done={todo.done}
                 />
-            ))}
+            ))} */}
         </div>
     );
 }
