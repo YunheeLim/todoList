@@ -88,3 +88,24 @@ module.exports.uncheckTodo = async (todoId) => {
   let checkResult = await db.Query(sql, [todoId]);
   return checkResult;
 };
+
+/**
+ * todoId로 해당 userNum을 조회
+ * @param {*} todoId
+ */
+module.exports.searchById = async (todoId) => {
+  let sql = "SELECT user_num FROM Todo WHERE todo_id = ?;";
+  let searchResult = await db.Query(sql, [todoId]);
+  return searchResult[0];
+};
+
+/**
+ * todoId로 해당 투두 삭제
+ * @param {*} todoId
+ * @returns
+ */
+module.exports.deleteTodo = async (todoId) => {
+  let sql = "DELETE FROM Todo WHERE todo_id = ?";
+  let deleteResult = await db.Query(sql, [todoId]);
+  return deleteResult;
+};

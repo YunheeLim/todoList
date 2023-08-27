@@ -38,13 +38,20 @@ td.clicked {
   margin-top: 20px;
 }
 
+#editTodoBtnBar {
+  color: gray;
+}
+#editTodoBtnBar > span {
+  margin-right: 15px;
+}
+
 .todo-item {
   margin-bottom: 10px;
 }
 
-.todo-item .todo_deleteBtn {
+.todo-item .todo_editBtn {
   cursor: pointer;
-  color: red;
+  font-weight: 500;
   margin-left: 10px;
 }
 

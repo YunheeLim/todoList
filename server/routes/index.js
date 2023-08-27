@@ -136,4 +136,10 @@ router.post("/main/todo/check", async (req, res) => {
   res.json(checkResult);
 });
 
+// 투두 항목 삭제
+router.delete("/main/todo", async (req, res) => {
+  let deleteResult = await mainController.deleteTodo(req, res);
+  res.json(deleteResult);
+});
+
 module.exports = router;
