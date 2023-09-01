@@ -93,7 +93,7 @@ module.exports.uncheckTodo = async (todoId) => {
  * todoId로 해당 userNum을 조회
  * @param {*} todoId
  */
-module.exports.searchById = async (todoId) => {
+module.exports.searchByTodoId = async (todoId) => {
   let sql = "SELECT user_num FROM Todo WHERE todo_id = ?;";
   let searchResult = await db.Query(sql, [todoId]);
   return searchResult[0];
@@ -110,8 +110,36 @@ module.exports.deleteTodo = async (todoId) => {
   return deleteResult;
 };
 
+/**
+ * todoId에 해당하는 todo_cont를 text로 변경
+ * @param {*} todoId
+ * @param {*} text
+ * @returns
+ */
 module.exports.updateTodo = async (todoId, text) => {
   let sql = "UPDATE todo SET todo_cont=?,todo_create_time=CURTIME() WHERE todo_id=?;";
   let updateResult = await db.Query(sql, [text, todoId]);
+  return updateResult;
+};
+
+/**
+ * catId로 해당 userNum 조회
+ * @param {*} catId
+ */
+module.exports.searchByCatId = async (catId) => {
+  let sql = "SELECT user_num FROM category WHERE cat_id = ?;";
+  let searchResult = await db.Query(sql, [catId]);
+  return searchResult[0];
+};
+
+/**
+ * catId에 해당하는 cat_title을 text로 변경
+ * @param {*} catId
+ * @param {*} text
+ * @returns
+ */
+module.exports.updateCategory = async (catId, text) => {
+  let sql = "UPDATE category SET cat_title=? WHERE cat_id=?;";
+  let updateResult = await db.Query(sql, [text, catId]);
   return updateResult;
 };
