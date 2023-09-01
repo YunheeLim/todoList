@@ -109,3 +109,9 @@ module.exports.deleteTodo = async (todoId) => {
   let deleteResult = await db.Query(sql, [todoId]);
   return deleteResult;
 };
+
+module.exports.updateTodo = async (todoId, text) => {
+  let sql = "UPDATE todo SET todo_cont=?,todo_create_time=CURTIME() WHERE todo_id=?;";
+  let updateResult = await db.Query(sql, [text, todoId]);
+  return updateResult;
+};

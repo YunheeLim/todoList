@@ -81,4 +81,10 @@ router.delete("/main/todo", async (req, res) => {
   res.json(deleteResult);
 });
 
+// 투두 항목 수정
+router.put("/main/todo", async (req, res) => {
+  let updateResult = await mainController.updateTodo(req, res);
+  res.json(updateResult);
+});
+
 module.exports = router;

@@ -91,6 +91,12 @@ module.exports.checkTodo = async (req, res) => {
   return monthlyTodo;
 };
 
+/**
+ * 투두 삭제 후 해당 월의 모든 투두 데이터 리턴
+ * @param {*} req
+ * @param {*} res
+ * @returns
+ */
 module.exports.deleteTodo = async (req, res) => {
   let todoId = req.body.todo_id;
   let userNum = req.session.userNum;
@@ -106,6 +112,29 @@ module.exports.deleteTodo = async (req, res) => {
   console.log("searchResult: ", searchResult, ", userNum:", userNum);
   if (searchResult.user_num == userNum) {
     let deleteResult = await todoModel.deleteTodo(todoId);
+    var monthlyTodo = await todoModel.getMonthTodo(userNum, year, month); // 해당 월의 모든 투두 데이터 리턴
+    return monthlyTodo;
+  } else {
+    return { msg: "id에 해당하는 투두 항목이 존재하지 않습니다." };
+  }
+};
+
+module.exports.updateTodo = async (req, res) => {
+  let todoId = req.body.todo_id;
+  let userNum = req.session.userNum;
+  let newText = req.body.todo_text;
+
+  let year = req.body.todo_date.year;
+  let month = req.body.todo_date.month;
+
+  if (userNum == undefined) {
+    return { msg: "session expired." };
+  }
+
+  let searchResult = await todoModel.searchById(todoId);
+  console.log("searchResult: ", searchResult, ", userNum:", userNum);
+  if (searchResult.user_num == userNum) {
+    let updateResult = await todoModel.updateTodo(todoId, newText);
     var monthlyTodo = await todoModel.getMonthTodo(userNum, year, month); // 해당 월의 모든 투두 데이터 리턴
     return monthlyTodo;
   } else {
