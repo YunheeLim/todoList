@@ -160,4 +160,10 @@ router.put("/main/category", async (req, res) => {
   res.json(updateResult);
 });
 
+//카테고리 삭제
+router.delete("/main/category", async (req, res) => {
+  let deleteResult = await mainController.deleteCategory(req, res);
+  res.json(deleteResult);
+});
+
 module.exports = router;
