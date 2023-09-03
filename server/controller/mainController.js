@@ -200,3 +200,31 @@ module.exports.insertCategory = async (req, res) => {
   console.log(insertResult);
   return monthlyTodo;
 };
+
+/**
+ * 카테고리 삭제 후 해당 월의 모든 투두 리턴
+ * @param {*} req
+ * @param {*} res
+ * @returns
+ */
+module.exports.deleteCategory = async (req, res) => {
+  let catId = req.body.cat_id;
+  let userNum = req.session.userNum;
+
+  let { year, month } = req.body.todo_date;
+
+  if (userNum == undefined) {
+    return { msg: "session expired." };
+  }
+
+  let searchResult = await todoModel.searchByCatId(catId);
+  console.log("searchResult: ", searchResult, ", userNum:", userNum);
+
+  if (searchResult.user_num == userNum) {
+    let deleteResult = await todoModel.deleteCategory(catId);
+    var monthlyTodo = await todoModel.getMonthTodo(userNum, year, month); // 해당 월의 모든 투두 데이터 리턴
+    return monthlyTodo;
+  } else {
+    return { msg: "id에 해당하는 카테고리 항목이 존재하지 않습니다." };
+  }
+};

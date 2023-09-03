@@ -157,3 +157,14 @@ module.exports.updateCategory = async (catId, text) => {
   let updateResult = await db.Query(sql, [text, catId]);
   return updateResult;
 };
+
+/**
+ * catId에 해당하는 투두 삭제
+ * @param {*} catId
+ * @returns
+ */
+module.exports.deleteCategory = async (catId) => {
+  let sql = "DELETE FROM category WHERE cat_id=?";
+  let deleteResult = await db.Query(sql, [catId]);
+  return deleteResult;
+};
