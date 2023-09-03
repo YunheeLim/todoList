@@ -118,14 +118,46 @@ router.get("/main/todo", async (req, res) => {
   res.json(todoData);
 });
 
+// 카테고리 목록 get 요청 처리
 router.get("/main/category", async (req, res) => {
   let catData = await mainController.getCategory(req, res);
   res.json(catData);
 });
 
+// todo 추가 요청 처리
 router.post("/main/todo", async (req, res) => {
   let insertResult = await mainController.insertTodo(req, res);
   res.json(insertResult);
+});
+
+// todo check / uncheck 요청 처리
+router.post("/main/todo/check", async (req, res) => {
+  let checkResult = await mainController.checkTodo(req, res);
+  res.json(checkResult);
+});
+
+// 투두 항목 삭제
+router.delete("/main/todo", async (req, res) => {
+  let deleteResult = await mainController.deleteTodo(req, res);
+  res.json(deleteResult);
+});
+
+// 투두 항목 수정
+router.put("/main/todo", async (req, res) => {
+  let updateResult = await mainController.updateTodo(req, res);
+  res.json(updateResult);
+});
+
+//카테고리 추가
+router.post("/main/category", async (req, res) => {
+  let insertResult = await mainController.insertCategory(req, res);
+  res.json(insertResult);
+});
+
+// 카테고리 이름 수정
+router.put("/main/category", async (req, res) => {
+  let updateResult = await mainController.updateCategory(req, res);
+  res.json(updateResult);
 });
 
 module.exports = router;

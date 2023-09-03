@@ -1,10 +1,10 @@
 const db = require("../config/db.js");
 
 /**
- * 해당 userNum의 해당 년월의 투두 조회
- * @param {*} userNum
- * @param {*} year
- * @param {*} month
+ * 해당 userNum의 해당 년월의 투두 조회, 날짜별,카테고리별로 묶여진 투두 JSON 반환
+ * @param {Number} userNum
+ * @param {Number} year
+ * @param {Number} month
  */
 module.exports.getMonthTodo = async (userNum, year, month) => {
   let sql =
@@ -64,11 +64,96 @@ module.exports.insertTodoData = async (userNum, catId, todoCont, todoDate) => {
   let sql = "INSERT INTO todo SET?";
   // 투두 데이터 insert
   let insertResult = await db.Query(sql, { user_num: userNum, cat_id: catId, todo_date: dateString, todo_cont: todoCont });
+  return insertResult;
+};
 
-  let insertedTodoId = insertResult["insertId"]; // insert query의 리턴값에서 todo_id 저장
-  sql =
-    "SELECT t.todo_id, t.user_num, c.cat_id,c.cat_title, t.todo_date, t.todo_cont, t.todo_time, t.todo_checked FROM todo as t, category as c WHERE t.cat_id=c.cat_id AND t.todo_id=?;";
-  // 방금 insert한 투두+카테고리의 데이터 리턴
-  let insertedTodo = await db.Query(sql, [insertedTodoId]);
-  return insertedTodo[0];
+/**
+ * 해당 투두를 체크 처리, todo_check_time을 업데이트
+ * @param {*} todoId
+ * @returns
+ */
+module.exports.checkTodo = async (todoId) => {
+  let sql = "UPDATE todo SET todo_checked=1,todo_check_time=CURTIME() WHERE todo_id=?;";
+  let checkResult = await db.Query(sql, [todoId]);
+  return checkResult;
+};
+
+/**
+ * 해당 투두를 체크 해제 처리, todo_check_time을 null로 업데이트
+ * @param {*} todoId
+ * @returns
+ */
+module.exports.uncheckTodo = async (todoId) => {
+  let sql = "UPDATE todo SET todo_checked=0,todo_check_time=null WHERE todo_id=?;";
+  let checkResult = await db.Query(sql, [todoId]);
+  return checkResult;
+};
+
+/**
+ * todoId로 해당 userNum을 조회
+ * @param {*} todoId
+ */
+module.exports.searchByTodoId = async (todoId) => {
+  let sql = "SELECT user_num FROM Todo WHERE todo_id = ?;";
+  let searchResult = await db.Query(sql, [todoId]);
+  return searchResult[0];
+};
+
+/**
+ * todoId로 해당 투두 삭제
+ * @param {*} todoId
+ * @returns
+ */
+module.exports.deleteTodo = async (todoId) => {
+  let sql = "DELETE FROM Todo WHERE todo_id = ?";
+  let deleteResult = await db.Query(sql, [todoId]);
+  return deleteResult;
+};
+
+/**
+ * todoId에 해당하는 todo_cont를 text로 변경
+ * @param {*} todoId
+ * @param {*} text
+ * @returns
+ */
+module.exports.updateTodo = async (todoId, text) => {
+  let sql = "UPDATE todo SET todo_cont=?,todo_create_time=CURTIME() WHERE todo_id=?;";
+  let updateResult = await db.Query(sql, [text, todoId]);
+  return updateResult;
+};
+
+/**
+ * catId로 해당 userNum 조회
+ * @param {*} catId
+ */
+module.exports.searchByCatId = async (catId) => {
+  let sql = "SELECT user_num FROM category WHERE cat_id = ?;";
+  let searchResult = await db.Query(sql, [catId]);
+  return searchResult[0];
+};
+
+/**
+ * 카테고리 추가
+ * @param {*} userNum
+ * @param {*} catTitle
+ * @param {*} catAccess
+ * @returns
+ */
+module.exports.insertCategory = async (userNum, catTitle, catAccess) => {
+  let sql = "INSERT INTO category SET?";
+  // 투두 데이터 insert
+  let insertResult = await db.Query(sql, { user_num: userNum, cat_title: catTitle, cat_access: catAccess });
+  return insertResult;
+};
+
+/**
+ * catId에 해당하는 cat_title을 text로 변경
+ * @param {*} catId
+ * @param {*} text
+ * @returns
+ */
+module.exports.updateCategory = async (catId, text) => {
+  let sql = "UPDATE category SET cat_title=? WHERE cat_id=?;";
+  let updateResult = await db.Query(sql, [text, catId]);
+  return updateResult;
 };

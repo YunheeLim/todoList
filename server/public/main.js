@@ -1,5 +1,3 @@
-//const { getCategories } = require("../models/todoModel");
-
 var currentYear = null;
 var currentMonth = null;
 
@@ -88,7 +86,7 @@ async function getCatData() {
 }
 
 /**
- * todo 추가 요청: todoCont,catId,todo_date를 서버에 post 제출 후, 추가한 투두를 todoData에도 업데이트
+ * todoCont,catId,todo_date를 post 요청 보내고 전체 투두 데이터 응답 받음, todoData 및 todo_count 업데이트
  * @param {*} todoCont
  * @param {*} catId
  * @returns
@@ -103,41 +101,39 @@ async function postTodoData(todoCont, catId, year, month, day) {
     body: JSON.stringify(data),
   });
   const jsonData = await response.json();
+  // 클라이언트의 todoData 업데이트
+  todoData = jsonData.todo_list;
+
+  // todo_count 업데이트
+  let todo_count = document.getElementById("todo_count");
+  todo_count.innerText = jsonData.todo_count;
   return jsonData;
 }
 
 /**
- * 투두 항목 하나를 todoData array에 추가
- * @param {*} todoJSON
+ * 서버에 투두 check / uncheck 요청 보내고 전체 투두 데이터 응답받음
+ * @param {*} checked
  */
-function addTodoData(todoJSON) {
-  // todoJSON의 date를 숫자형으로 저장
-  let year = Number(todoJSON.todo_date.slice(0, 4));
-  let month = Number(todoJSON.todo_date.slice(5, 7));
-  let day = Number(todoJSON.todo_date.slice(8, 10));
-  console.log("addTodoData year, month, day: ", year, month, day);
+async function postTodoCheck(data) {
+  const response = await fetch("http://localhost:8080/main/todo/check", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  const jsonData = await response.json();
+  // 클라이언트의 todoData 업데이트
+  todoData = jsonData.todo_list;
 
-  // todoData에 todoJSON 하나 추가
-  const dayIdx = todoData.findIndex((todoItem) => todoItem.year === year && todoItem.month === month && todoItem.day === day);
-  if (dayIdx != -1) {
-    // todoData에 해당 날짜 JSON 이미 존재함 -> 해당 카테고리 존재하는지 확인
-    const catIdx = todoData[dayIdx].categorys.findIndex((catItem) => catItem.cat_id === todoJSON.cat_id);
-    if (catIdx != -1) {
-      // 해당 날짜의 해당 카테고리 JSON 이미 존재함 -> todo 데이터 넣기
-      todoData[dayIdx].categorys[catIdx].todos.push(todoJSON);
-    } else {
-      // 해당 날짜는 존재하지만 카테고리는 존재하지 않음 -> 카테고리 정보와 함께 todo  데이터 넣기
-      todoData[dayIdx].categorys.push({ cat_id: todoJSON.cat_id, cat_title: todoJSON.cat_title, todos: [todoJSON] });
-    }
-  } else {
-    // todoResult에 해당 날짜 JSON 존재하지 않음 -> 날짜 정보, 카테고리 정보와 함께 todo 데이터 넣기
-    todoData.push({ year: year, month: month, day: day, categorys: [{ cat_id: todoJSON.cat_id, cat_title: todoJSON.cat_title, todos: [todoJSON] }] });
-  }
-
-  // 투두 하나 추가했으므로 todo_count 값 증가
-  let todo_count = document.getElementById("todo_count");
-  todo_count.innerText = Number(todo_count.innerText) + 1;
+  await displayClickedTodoData(clickedYear, clickedMonth, clickedDate);
 }
+
+/**
+ * 서버에 투두 delete 요청 보내고 전체 투두 데이터 응답 받음
+ * @param {*} todoId
+ */
+async function deleteTodoData(todoId) {}
 
 /**
  * 클릭된 일자의 카테고리 및 투두 항목들을 보여줌
@@ -206,6 +202,7 @@ function displayAddTodoForm(catId) {
   if (addTodoFormElem) {
     // 폼이 이미 있는 경우 -> 폼 요소 삭제
     catDiv.removeChild(addTodoFormElem);
+    // 문제: 폼 열어둔 카테고리가 아닌 다른 카테고리의 + 버튼 누른 경우 기존 폼이 닫히고 다른 카테고리에 폼 보여야하는데 지금 그렇게 안되고 있음
   } else {
     // 폼 없는 경우 ->  폼 요소 생성
     const form = document.createElement("form");
@@ -232,11 +229,10 @@ function displayAddTodoForm(catId) {
       console.log("todo submit Date:", clickedYear, clickedMonth, clickedDate, " todoText:", todoText);
       if (todoText) {
         // 투두 항목 추가 api 호출
-        let insertedTodo = await postTodoData(todoText, catId, clickedYear, clickedMonth, clickedDate);
+        let postResult = await postTodoData(todoText, catId, clickedYear, clickedMonth, clickedDate);
         catDiv.removeChild(form);
         console.log("=== result of postTodoData ===");
-        console.log(insertedTodo);
-        addTodoData(insertedTodo);
+        console.log(postResult);
         await displayClickedTodoData(clickedYear, clickedMonth, clickedDate);
       }
     });
@@ -262,20 +258,79 @@ function setTodoItem(catId, todos) {
 
     var checkbox = document.createElement("input");
     checkbox.type = "checkbox";
+    if (todoItem.todo_checked) checkbox.checked = true;
 
-    var deleteBtn = document.createElement("span");
-    deleteBtn.className = "todo_deleteBtn";
-    deleteBtn.textContent = "X";
+    var editBtn = document.createElement("span");
+    editBtn.className = "todo_editBtn";
+    editBtn.textContent = "...";
 
-    deleteBtn.addEventListener("click", () => {
-      deleteTodoItem(newItem);
+    //투두 check 및 uncheck 처리 Listener
+    checkbox.addEventListener("change", async () => {
+      data = { todo_id: newItem.id.slice(5), todo_date: { year: clickedYear, month: clickedMonth } };
+
+      if (checkbox.checked) {
+        console.log(" checkbox clicked, id:", newItem.id.slice(5));
+
+        data.checked = true;
+        await postTodoCheck(data);
+      } else {
+        console.log(" checkbox unclicked, id:", newItem.id.slice(5));
+
+        data.checked = false;
+        await postTodoCheck(data);
+      }
+    });
+
+    // 투두 옆 편집 버튼 클릭 시 수정하기, 삭제하기, 시간 알림 선택지 보여주기
+    editBtn.addEventListener("click", () => {
+      displayEditTodoBtns(todoItem.todo_id);
     });
 
     newItem.appendChild(label);
     newItem.appendChild(checkbox);
-    newItem.appendChild(deleteBtn);
+    newItem.appendChild(editBtn);
     catDiv.appendChild(newItem);
   });
+}
+
+/**
+ * 해당 투두에 대한 수정, 삭제, 시간알림 추가 버튼 보여주기
+ * @param {*} todoId
+ */
+function displayEditTodoBtns(todoId) {
+  var todoDiv = document.getElementById("todo_" + todoId);
+  var editTodoBtnBar = document.getElementById("editTodoBtnBar");
+  if (editTodoBtnBar) {
+    // 버튼 바 있는 경우 -> 삭제
+    todoDiv.removeChild(editTodoBtnBar);
+  } else {
+    // 버튼 바 없는 경우 -> 생성
+    const btnBar = document.createElement("div");
+    btnBar.className = "edit-todo-bar";
+    btnBar.id = "editTodoBtnBar";
+
+    const updateBtn = document.createElement("span");
+    updateBtn.className = "todo_updateBtn";
+    updateBtn.textContent = "수정하기";
+
+    const deleteBtn = document.createElement("span");
+    deleteBtn.className = "todo_deleteBtn";
+    deleteBtn.textContent = "삭제하기";
+
+    deleteBtn.addEventListener("click", async () => {
+      await deleteTodoData(todoId);
+    });
+
+    const setTimeBtn = document.createElement("span");
+    setTimeBtn.className = "todo_setTimeBtn";
+    setTimeBtn.textContent = "시간 알림 설정";
+
+    btnBar.appendChild(updateBtn);
+    btnBar.appendChild(deleteBtn);
+    btnBar.appendChild(setTimeBtn);
+
+    todoDiv.appendChild(btnBar);
+  }
 }
 
 /**
@@ -413,42 +468,3 @@ promise.then(() => {
     cell.click();
   }
 });
-
-// 투두리스트 항목 추가를 처리하는 함수
-function addTodoItem() {
-  var todoInput = document.getElementById("todoInput");
-  var todoText = todoInput.value.trim();
-
-  if (todoText !== "") {
-    var todoList = document.getElementById("todoList");
-
-    // 새로운 항목을 생성하여 todoList에 추가
-    var newItem = document.createElement("div");
-    newItem.className = "todo-item";
-
-    var checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    var label = document.createElement("label");
-    label.textContent = todoText;
-    var deleteButton = document.createElement("span");
-    deleteButton.className = "delete-button";
-    deleteButton.textContent = "X";
-
-    deleteButton.addEventListener("click", function () {
-      deleteTodoItem(newItem);
-    });
-
-    newItem.appendChild(checkbox);
-    newItem.appendChild(label);
-    newItem.appendChild(deleteButton);
-    todoList.appendChild(newItem);
-
-    // 입력 필드 초기화
-    todoInput.value = "";
-  }
-}
-
-function deleteTodoItem(item) {
-  var todoList = document.getElementById("todoList");
-  todoList.removeChild(item);
-}
