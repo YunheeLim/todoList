@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import { DateStateContext, DateDispatchContext } from '../DateContext';
 import { format, addMonths, subMonths } from 'date-fns';
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns';
 import { isSameMonth, isSameDay, addDays, parse } from 'date-fns';
@@ -91,8 +92,25 @@ const RenderCells = ({ currentMonth, selectedDate, onDateClick }) => {
 
 
 export default function Calendar() {
+    const date = useContext(DateStateContext);
+    const dispatch = useContext(DateDispatchContext);
+
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
+
+    useEffect(()=>{
+        dispatch({
+            type: 'SELECT',
+            date: selectedDate
+        });
+
+    }, [selectedDate]);
+
+    // useEffect(()=>{
+    //     console.log('print date: ', date);
+
+    // }, [date]);
+
 
     const prevMonth = () => {
         setCurrentMonth(subMonths(currentMonth, 1));

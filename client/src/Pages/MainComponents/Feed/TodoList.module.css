@@ -5,7 +5,7 @@
 }
 
 .todoCreate{
-    width:140px;
+    width:100px;
     height: 35px;
     background-color: #F2F2F2;
     font-weight: bold;
@@ -44,6 +44,10 @@
     display:flex;
     justify-content:flex-start;
     margin-bottom: 5px;
+}
+
+.checkBox{
+    cursor: pointer;
 }
 
 .text{
