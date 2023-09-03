@@ -176,3 +176,27 @@ module.exports.updateCategory = async (req, res) => {
     return { msg: "id에 해당하는 카테고리 항목이 존재하지 않습니다." };
   }
 };
+
+/**
+ * 카테고리 추가 후 해당 월의 모든 투두 리턴
+ * @param {*} req
+ * @param {*} res
+ */
+module.exports.insertCategory = async (req, res) => {
+  let userNum = req.session.userNum;
+  let catTitle = req.body.cat_title;
+  let catAccess = req.body.cat_access;
+
+  let { year, month } = req.body.todo_date;
+
+  if (userNum == undefined) {
+    return { msg: "session expired." };
+  }
+  console.log(" -- POST category -- from user_num: ", userNum, "cat_title: ", catTitle);
+  let insertResult = await todoModel.insertCategory(userNum, catTitle, catAccess);
+  let monthlyTodo = await todoModel.getMonthTodo(userNum, year, month); // 해당 월의 모든 투두 데이터 리턴
+
+  console.log("=============insertResult==============");
+  console.log(insertResult);
+  return monthlyTodo;
+};

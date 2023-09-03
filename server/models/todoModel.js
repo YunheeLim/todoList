@@ -133,6 +133,20 @@ module.exports.searchByCatId = async (catId) => {
 };
 
 /**
+ * 카테고리 추가
+ * @param {*} userNum
+ * @param {*} catTitle
+ * @param {*} catAccess
+ * @returns
+ */
+module.exports.insertCategory = async (userNum, catTitle, catAccess) => {
+  let sql = "INSERT INTO category SET?";
+  // 투두 데이터 insert
+  let insertResult = await db.Query(sql, { user_num: userNum, cat_title: catTitle, cat_access: catAccess });
+  return insertResult;
+};
+
+/**
  * catId에 해당하는 cat_title을 text로 변경
  * @param {*} catId
  * @param {*} text

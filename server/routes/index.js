@@ -148,6 +148,12 @@ router.put("/main/todo", async (req, res) => {
   res.json(updateResult);
 });
 
+//카테고리 추가
+router.post("/main/category", async (req, res) => {
+  let insertResult = await mainController.insertCategory(req, res);
+  res.json(insertResult);
+});
+
 // 카테고리 이름 수정
 router.put("/main/category", async (req, res) => {
   let updateResult = await mainController.updateCategory(req, res);
